@@ -28,7 +28,7 @@ function OnReceiveSync(string SyncString) {
 	ShouldBlockTimePiece = true; //Otherwise an infinite loop of OP Commands occurs
     `GameManager.GiveTimePiece(arr[0], 1 == int(arr[1]));
 
-	SpawnParticle();
+	SpawnParticle(Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece');
 	UpdatePowerPanels();
 }
 

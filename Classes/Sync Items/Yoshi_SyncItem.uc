@@ -1,5 +1,5 @@
 
-class Yoshi_SyncItem extends Hat_StatusEffect 
+class Yoshi_SyncItem extends Object 
 	implements(Hat_GameEventsInterface)
 	abstract;
 
@@ -10,8 +10,7 @@ var float ParticleScale;
 
 var bool AddedToGEI;
 
-function OnAdded(Actor a) {
-	Super.OnAdded(a);
+function OnAdded() {
 
 	if(GameMod == None) {
 		GameMod = GetGameMod();
@@ -42,19 +41,16 @@ function OnReceiveSync(string SyncString) {
 }
 
 function SpawnParticle(Texture2D Texture) {
-	local Texture2D ParticleTex;
 	local MaterialInstanceConstant GenMat;
-	local ParticleSystemComponent psc;
-    local Hat_Player ply;
+	local LinearColor TeamColor;
 
 	if(GameMod == None) return;
 	//Check Sync Icon Config
 
-	ParticleTex = Texture;
-
 	GenMat = new class'MaterialInstanceConstant';
     GenMat.SetParent(SyncMaterial);
-    GenMat.SetVectorParameterValue('TeamColor', GameMod.GetTeamColor());
+	TeamColor = GameMod.GetTeamColor();
+    GenMat.SetVectorParameterValue('TeamColor', TeamColor);
     GenMat.SetTextureParameterValue('Diffuse', Texture);
 
 	CreateParticle(SyncParticle, GenMat, ParticleScale);
@@ -64,12 +60,64 @@ static function Name GetCommandChannel() {
 	return class'YoshiPrivate_OnlinePartySuperSync_Commands'.const.OPSSItem;
 }
 
-function Texture2D GetSyncTexture() {
-	return Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_unknown';
+//Where we get the icon, if you ever see a ? then I missed an approach to find the HUDIcon
+static function Texture2D GetTextureByName(string Collectible) {
+    local Class<Object> CollectibleClass;
+    CollectibleClass = class'Hat_ClassHelper'.static.ClassFromName(Collectible);
+    if(class<Hat_Collectible_Important>(CollectibleClass) != None) {
+        if(Texture2D(class<Hat_Collectible_Important>(CollectibleClass).default.HUDIcon) != None) {
+            return Texture2D(class<Hat_Collectible_Important>(CollectibleClass).default.HUDIcon);
+        }
+
+        if(class<Hat_Collectible_Important>(CollectibleClass).default.InventoryClass != None) {
+            if(Texture2D(class<Hat_CosmeticItem>(class<Hat_Collectible_Important>(CollectibleClass).default.InventoryClass).default.HUDIcon) != None) {
+                return Texture2D(class<Hat_CosmeticItem>(class<Hat_Collectible_Important>(CollectibleClass).default.InventoryClass).default.HUDIcon);
+            }
+        }
+    }
+
+    if(class<Hat_CosmeticItem>(CollectibleClass) != None) {
+        if(Texture2D(class<Hat_CosmeticItem>(CollectibleClass).default.HUDIcon) != None) {
+            return Texture2D(class<Hat_CosmeticItem>(CollectibleClass).default.HUDIcon);
+        }
+    }
+
+    if(class<Hat_CosmeticItemQualityInfo>(CollectibleClass) != None) {
+        if(Texture2D(class<Hat_CosmeticItemQualityInfo>(CollectibleClass).default.HUDIcon) != None) {
+            return Texture2D(class<Hat_CosmeticItemQualityInfo>(CollectibleClass).default.HUDIcon);
+        }
+    }
+
+    if(class<Hat_Bonfire_Base>(CollectibleClass) != None) {
+        if(class<Hat_Bonfire_Base>(CollectibleClass).default.HUDIcon != None) {
+            return class<Hat_Bonfire_Base>(CollectibleClass).default.HUDIcon;
+        }
+        
+    }
+
+    if(class<Hat_SandStationHorn_Base>(CollectibleClass) != None) {
+        return Texture2D'HatInTime_Hud_LocationBanner.Textures.vikinghorn';
+    }
+
+    if(class<Hat_Weapon>(CollectibleClass) != None) {
+        if(class<Hat_Weapon>(CollectibleClass).default.HUDIcon != None) {
+            return class<Hat_Weapon>(CollectibleClass).default.HUDIcon;
+        }
+    }
+
+    if(class<Hat_Collectible_EnergyBit>(CollectibleClass) != None) {
+        return Texture2D'HatInTime_Hud.Textures.EnergyBit';
+    }
+
+    if(class<Hat_Collectible_HealthBit>(CollectibleClass) != None) {
+        return Texture2D'HatInTime_Hud2.Textures.health_pon';
+    }
+
+    return Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_unknown';
 }
 
 //Makes the cool icon that shows up when you get a sync
-function CreateParticle(ParticleSystem P, optional MaterialInterface MI, optional float ParticleScale = 0.5) {
+function CreateParticle(ParticleSystem P, optional MaterialInterface MI, optional float PartScale = 0.5) {
 	local ParticleSystemComponent psc;
     local Hat_Player ply;
 
@@ -81,7 +129,7 @@ function CreateParticle(ParticleSystem P, optional MaterialInterface MI, optiona
             if(MI != None) {
                 psc.SetMaterialParameter('CollectibleOverride', MI);
             }
-		    psc.SetScale(ParticleScale);
+		    psc.SetScale(PartScale);
         }
     }
 }
@@ -98,11 +146,13 @@ static function Yoshi_OnlinePartySuperSync_GameMod GetGameMod() {
 	return GM;
 }
 
-
+static final function Print(const string msg)
+{
+    class'Yoshi_OnlinePartySuperSync_GameMod'.static.Print(msg);
+}
 
 defaultproperties
 {
-	Infinite=true
 	SyncMaterial=MaterialInstanceConstant'Yoshi_OPSuperSync_Content.Yoshi_YarnMaterial_Sync_INST'
 	SyncParticle=ParticleSystem'Yoshi_OPSuperSync_Content.Yoshi_YarnType_Sync'
 	ParticleScale=0.25

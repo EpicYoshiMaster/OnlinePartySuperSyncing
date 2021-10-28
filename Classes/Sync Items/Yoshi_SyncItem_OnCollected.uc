@@ -6,11 +6,11 @@ var const array< class<Object> > WhitelistedCollectibles; //Use most general cla
 var const array< class<Object> > BlacklistedCollectibles; //Use for subclasses of a Whitelisted Collectible that should not go through
 
 function OnCollectedCollectible(Object InCollectible) {
-	local int i, j;
+	local int i;
 
 	//Check whitelist
 	for(i = 0; i < WhitelistedCollectibles.length; i++) {
-		if(WhiteListedCollectibles[i](InCollectible) != None) {
+		if(ClassIsChildOf(InCollectible.class, WhitelistedCollectibles[i])) {
 
 			if(IsBlacklisted(InCollectible)) return;
 
@@ -25,7 +25,7 @@ function bool IsBlacklisted(Object InCollectible) {
 	local int i;
 
 	for(i = 0; i < BlacklistedCollectibles.length; i++) {
-		if(BlacklistedCollectibles[i](InCollectible) != None) {
+		if(ClassIsChildOf(InCollectible.class, WhitelistedCollectibles[i])) {
 			return true;
 		}
 	}
@@ -67,7 +67,7 @@ function OnReceiveSync(string SyncString) {
     }
 
 	//TODO: Spawn the Particle!!!!
-    //SpawnParticle();
+    SpawnParticle(GetTextureByName(arr[0]));
 
     if(arr[1] != "") {
         class'Hat_SaveBitHelper'.static.AddLevelBit(arr[1], Max(int(arr[2]), 1), arr[3]);
