@@ -42,6 +42,18 @@ event OnOnlinePartyCommand(string Command, Name CommandChannel, Hat_GhostPartyPl
 	}
 }
 
+event Tick(float delta) {
+	local Hat_PlayerController pc;
+
+	pc = Hat_PlayerController(GetALocalPlayerController());
+
+	if(pc != None) {
+		if(Hat_HUD(pc.myHUD).GetHUD(class'Yoshi_HUDElement_OnlineSync') == None) {
+			Hat_HUD(pc.myHUD).OpenHUD(class'Yoshi_HUDElement_OnlineSync');
+		}
+	}
+}
+
 event OnModLoaded() {
 	local int i;
 	Syncs.length = 0;

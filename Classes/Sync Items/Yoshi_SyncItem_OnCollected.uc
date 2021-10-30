@@ -66,9 +66,9 @@ function OnReceiveSync(string SyncString) {
         `GameManager.AddBadgeSlots(1);
     }
 
-	//TODO: Spawn the Particle!!!!
     SpawnParticle(GetTextureByName(arr[0]));
 
+	//BUG: Collectible is not being destroyed
     if(arr[1] != "") {
         class'Hat_SaveBitHelper'.static.AddLevelBit(arr[1], Max(int(arr[2]), 1), arr[3]);
         if(`GameManager.GetCurrentMapFilename() ~= arr[3]) {
