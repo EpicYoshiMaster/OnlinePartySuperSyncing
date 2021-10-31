@@ -22,9 +22,7 @@ function OnAdded() {
 	}
 }
 
-function bool Update(float delta) {
-
-}
+function bool Update(float delta) {}
 
 function string ConvertToSync() {
 	return "Gaming";

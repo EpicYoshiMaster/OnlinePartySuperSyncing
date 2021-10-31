@@ -49,10 +49,8 @@ function OnReceiveSync(string SyncString) {
 	arr = SplitString(SyncString, "+");
 
 	//Check for already obtained level bits
-	if(arr[1] != "") {
-		if(class'Hat_SaveBitHelper'.static.HasLevelBit(arr[1], Max(int(arr[2]), 1), arr[3])) {
-			return;
-		}
+	if(HasLevelBit(arr[1], int(arr[2]), arr[3])) {
+		return;
 	}
 
 	ply = Hat_Player(class'Engine'.static.GetEngine().GamePlayers[0].Actor.Pawn);
@@ -67,13 +65,26 @@ function OnReceiveSync(string SyncString) {
     }
 
     SpawnParticle(GetTextureByName(arr[0]));
+	AddLevelBit(arr[1], int(arr[2]), arr[3]);
+}
 
-	//BUG: Collectible is not being destroyed
-    if(arr[1] != "") {
-        class'Hat_SaveBitHelper'.static.AddLevelBit(arr[1], Max(int(arr[2]), 1), arr[3]);
-        if(`GameManager.GetCurrentMapFilename() ~= arr[3]) {
-            DestroyCollectible(arr[1]);
-            UpdateActorStatus(arr[1]); //Some containers give their level bits to their collectibles
+function bool HasLevelBit(string ID, int Value, string MapName) {
+	if(ID == "") return false;
+
+	Value = Max(Value, 1);
+
+	return class'Hat_SaveBitHelper'.static.HasLevelBit(ID, Value, MapName);
+}
+
+function AddLevelBit(string ID, int Value, string MapName) {
+	Value = Max(Value, 1);
+
+	//BUG: Collectible is not being destroyed sometimes?
+	if(ID != "") {
+        class'Hat_SaveBitHelper'.static.AddLevelBit(ID, Value, MapName);
+        if(`GameManager.GetCurrentMapFilename() ~= MapName) {
+            DestroyCollectible(ID);
+            UpdateActorStatus(ID); //Some containers give their level bits to their collectibles
         }
     }
 }
