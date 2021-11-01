@@ -1,18 +1,44 @@
 
-class Yoshi_SyncItem_Backpack extends Yoshi_SyncItem_ClassWhitelist
+class Yoshi_SyncItem_Backpack extends Yoshi_SyncItem
 	abstract;
+
+var const array< class<Object> > WhitelistedCollectibles; //Use most general class of a collectible that can be handled here
+var const array< class<Object> > BlacklistedCollectibles; //Use for subclasses of a Whitelisted Collectible that should not go through
 
 function OnNewBackpackItem(Hat_BackpackItem item) {
 	local class<Object> ItemBackpackClass;
+	local int i;
 
 	ItemBackpackClass = item.BackpackClass;
 
-	if(ShouldSync(item)) {
-		OnValidItem(ItemBackpackClass);
+	//Print("OPSS_NewBackpackItem " $ `ShowVar(ItemBackpackClass));
+
+	//Check whitelist
+	for(i = 0; i < WhitelistedCollectibles.length; i++) {
+		if(ClassIsChildOf(ItemBackpackClass, WhitelistedCollectibles[i])) {
+
+			if(IsBlacklisted(ItemBackpackClass)) return;
+
+			//We found a valid collectible!
+			OnValidCollectible(ItemBackpackClass);
+			return;
+		}
 	}
 }
 
-function OnValidItem(class<Object> ItemBackpackClass) {
+function bool IsBlacklisted(class<Object> ItemBackpackClass) {
+	local int i;
+
+	for(i = 0; i < BlacklistedCollectibles.length; i++) {
+		if(ClassIsChildOf(ItemBackpackClass, WhitelistedCollectibles[i])) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function OnValidCollectible(class<Object> ItemBackpackClass) {
 	local string collectibleString;
 
 	//Send the class and the map
