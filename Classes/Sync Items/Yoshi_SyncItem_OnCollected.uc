@@ -1,39 +1,15 @@
 //Generic class for syncs that involve the OnCollectedCollectible function to clean things up
-class Yoshi_SyncItem_OnCollected extends Yoshi_SyncItem
+class Yoshi_SyncItem_OnCollected extends Yoshi_SyncItem_ClassWhitelist
 	abstract;
 
-var const array< class<Object> > WhitelistedCollectibles; //Use most general class of a collectible that can be handled here
-var const array< class<Object> > BlacklistedCollectibles; //Use for subclasses of a Whitelisted Collectible that should not go through
-
 function OnCollectedCollectible(Object InCollectible) {
-	local int i;
 
-	//Check whitelist
-	for(i = 0; i < WhitelistedCollectibles.length; i++) {
-		if(ClassIsChildOf(InCollectible.class, WhitelistedCollectibles[i])) {
-
-			if(IsBlacklisted(InCollectible)) return;
-
-			//We found a valid collectible!
-			OnValidCollectible(InCollectible);
-			return;
-		}
+	if(ShouldSync(InCollectible)) {
+		OnValidItem(InCollectible);
 	}
 }
 
-function bool IsBlacklisted(Object InCollectible) {
-	local int i;
-
-	for(i = 0; i < BlacklistedCollectibles.length; i++) {
-		if(ClassIsChildOf(InCollectible.class, WhitelistedCollectibles[i])) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-function OnValidCollectible(Object InCollectible) {
+function OnValidItem(Object InCollectible) {
 	local string collectibleString;
 
 	//Send the class, then the level bit, then the map
