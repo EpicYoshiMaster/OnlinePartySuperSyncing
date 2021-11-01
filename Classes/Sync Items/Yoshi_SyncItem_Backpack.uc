@@ -11,8 +11,6 @@ function OnNewBackpackItem(Hat_BackpackItem item) {
 
 	ItemBackpackClass = item.BackpackClass;
 
-	//Print("OPSS_NewBackpackItem " $ `ShowVar(ItemBackpackClass));
-
 	//Check whitelist
 	for(i = 0; i < WhitelistedCollectibles.length; i++) {
 		if(ClassIsChildOf(ItemBackpackClass, WhitelistedCollectibles[i])) {
