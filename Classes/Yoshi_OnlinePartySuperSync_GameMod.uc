@@ -16,7 +16,7 @@ var config int SyncLevelEvents;
 
 var config int SelectedOPSSTeam;
 
-var bool HasReplacedLoadout;
+var bool HasControllerSpawned;
 
 var array<Yoshi_SyncItem> Syncs;
 
@@ -44,6 +44,7 @@ event OnOnlinePartyCommand(string Command, Name CommandChannel, Hat_GhostPartyPl
 	}
 }
 
+/*
 event Tick(float delta) {
 	local Hat_PlayerController pc;
 
@@ -69,7 +70,7 @@ event Tick(float delta) {
 			}
 		}
 	}
-}
+}*/
 
 function OnNewBackpackItem(Hat_BackpackItem item) {
 	local int i;
@@ -83,19 +84,63 @@ function OnNewBackpackItem(Hat_BackpackItem item) {
 
 event OnModLoaded() {
 	local int i;
+	local array< class<Yoshi_SyncItem> > AllSyncClasses;
+
 	Syncs.length = 0;
+	AllSyncClasses = GetAllSyncClasses();
 
-	Syncs.AddItem(new class'Yoshi_SyncItem_Pon');
-	//Syncs.AddItem(new class'Yoshi_SyncItem_OnCollected_Badge');
-	Syncs.AddItem(new class'Yoshi_SyncItem_OnCollected_Relic');
-	Syncs.AddItem(new class'Yoshi_SyncItem_OnCollected_Sticker');
-	Syncs.AddItem(new class'Yoshi_SyncItem_OnCollected_Yarn');
-	Syncs.AddItem(new class'Yoshi_SyncItem_TimePiece');
-	Syncs.AddItem(new class'Yoshi_SyncItem_Backpack_Badge');
+	for(i = 0; i < AllSyncClasses.length; i++) {
 
-	for(i = 0; i < Syncs.length; i++) {
-		Syncs[i].OnAdded();
+		//TODO: Add Config Checks
+		Syncs.AddItem(new AllSyncClasses[i]);
+		Syncs[Syncs.length - 1].OnAdded();
 	}
+
+	HookActorSpawn(class'Hat_PlayerController', 'Hat_PlayerController');
+}
+
+event OnHookedActorSpawn(Object NewActor, Name Identifier) {
+	if(!HasControllerSpawned && Identifier == 'Hat_PlayerController') {
+		HasControllerSpawned = true;
+		Print("OPSS_HOOKED " $ `ShowVar(NewActor));
+		SetTimer(0.1, false, NameOf(OnReady), self, NewActor);
+	}
+}
+
+function OnReady(Object obj) {
+	local Hat_PlayerController pc;
+	local Yoshi_Loadout NewLoadout;
+
+	pc = Hat_PlayerController(obj);
+	if(pc != None) {
+
+		Print("OPSS_ONREADY " $ `ShowVar(pc));
+		Hat_HUD(pc.myHUD).OpenHUD(class'Yoshi_HUDElement_OnlineSync');
+
+		NewLoadout = new class'Yoshi_Loadout';
+		NewLoadout.GameMod = self;
+		NewLoadout.PlayerOwner = pc;
+		NewLoadout.SaveGame = `SaveManager.GetCurrentSaveData();
+		pc.MyLoadout = NewLoadout;
+		`SaveManager.GetCurrentSaveData().LoadLoadout(pc);
+		Hat_Player(pc.Pawn).ServerInitialUpdates();
+	}
+}
+
+//Call it once then never again...
+static function array< class<Yoshi_SyncItem> > GetAllSyncClasses() {
+	local array< class<Yoshi_SyncItem> > AllSyncClasses;
+	local array< class<Object> > AllClasses;
+    local int i;
+
+    AllClasses = class'Hat_ClassHelper'.static.GetAllScriptClasses("Yoshi_SyncItem");
+    for(i = 0; i < AllClasses.length; i++) {
+        if(class<Yoshi_SyncItem>(AllClasses[i]) != None) {
+            AllSyncClasses.AddItem(class<Yoshi_SyncItem>(AllClasses[i]));
+        }
+    }
+
+    return AllSyncClasses;
 }
 
 event OnConfigChanged(Name ConfigName) {
