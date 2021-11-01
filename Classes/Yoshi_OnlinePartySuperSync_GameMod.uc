@@ -16,6 +16,8 @@ var config int SyncLevelEvents;
 
 var config int SelectedOPSSTeam;
 
+var bool HasReplacedLoadout;
+
 var array<Yoshi_SyncItem> Syncs;
 
 function SendSync(Yoshi_SyncItem SyncItem, string SyncString, Name CommandChannel) {
@@ -51,6 +53,31 @@ event Tick(float delta) {
 		if(Hat_HUD(pc.myHUD).GetHUD(class'Yoshi_HUDElement_OnlineSync') == None) {
 			Hat_HUD(pc.myHUD).OpenHUD(class'Yoshi_HUDElement_OnlineSync');
 		}
+
+		if(!HasReplacedLoadout) {
+			pc.MyLoadout = new class'Yoshi_Loadout';
+
+			if(pc.MyLoadout.class == class'Yoshi_Loadout') {
+				HasReplacedLoadout = true;
+
+				Yoshi_Loadout(pc.MyLoadout).GameMod = self;
+				Yoshi_Loadout(pc.MyLoadout).PlayerOwner = pc;
+				Yoshi_Loadout(pc.MyLoadout).SaveGame = Yoshi_Loadout(pc.MyLoadout).GetSaveGame();
+				`SaveManager.GetCurrentSaveData().LoadLoadout(pc);
+
+				Hat_Player(pc.Pawn).ServerInitialUpdates();
+			}
+		}
+	}
+}
+
+function OnNewBackpackItem(Hat_BackpackItem item) {
+	local int i;
+
+	for(i = 0; i < Syncs.length; i++) {
+		if(Yoshi_SyncItem_Backpack(Syncs[i]) != None) {
+			Yoshi_SyncItem_Backpack(Syncs[i]).OnNewBackpackItem(item);
+		}
 	}
 }
 
@@ -60,9 +87,11 @@ event OnModLoaded() {
 
 	Syncs.AddItem(new class'Yoshi_SyncItem_Pon');
 	//Syncs.AddItem(new class'Yoshi_SyncItem_OnCollected_Badge');
+	Syncs.AddItem(new class'Yoshi_SyncItem_OnCollected_Relic');
 	Syncs.AddItem(new class'Yoshi_SyncItem_OnCollected_Sticker');
 	Syncs.AddItem(new class'Yoshi_SyncItem_OnCollected_Yarn');
 	Syncs.AddItem(new class'Yoshi_SyncItem_TimePiece');
+	Syncs.AddItem(new class'Yoshi_SyncItem_Backpack_Badge');
 
 	for(i = 0; i < Syncs.length; i++) {
 		Syncs[i].OnAdded();
