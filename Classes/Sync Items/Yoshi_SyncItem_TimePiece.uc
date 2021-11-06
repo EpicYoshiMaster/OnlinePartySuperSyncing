@@ -18,7 +18,7 @@ function OnTimePieceCollected(string Identifier) {
 	Sync(SyncString);
 }
 
-function OnReceiveSync(string SyncString) {
+function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	local array<string> arr;
 
 	arr = SplitString(SyncString, "+");
@@ -28,7 +28,8 @@ function OnReceiveSync(string SyncString) {
 	ShouldBlockTimePiece = true; //Otherwise an infinite loop of OP Commands occurs
     `GameManager.GiveTimePiece(arr[0], 1 == int(arr[1]));
 
-	SpawnParticle(Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece');
+
+	CelebrateSync(Sender, "COOL TIME PIECE NAME", Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece');
 	UpdatePowerPanels();
 }
 

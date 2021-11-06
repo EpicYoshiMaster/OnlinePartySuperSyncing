@@ -41,7 +41,7 @@ function OnValidCollectible(Object InCollectible) {
 	Sync(collectibleString);
 }
 
-function OnReceiveSync(string SyncString) {
+function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	local array<string> arr;
 	local Hat_Player ply;
 	local Hat_Collectible_Important SpawnedCollectible;
@@ -64,7 +64,7 @@ function OnReceiveSync(string SyncString) {
         `GameManager.AddBadgeSlots(1);
     }
 
-    SpawnParticle(GetTextureByName(arr[0]));
+	CelebrateSync(Sender,"COLLECTIBLE ITEM NAME",GetTextureByName(arr[0]));
 	AddLevelBit(arr[1], int(arr[2]), arr[3]);
 }
 

@@ -6,6 +6,6 @@ function OnCollectedCollectible(Object InCollectible) {
     }
 }
 
-function OnReceiveSync(string SyncString) {
+function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	`GameManager.AddEnergyBits(1);
 }

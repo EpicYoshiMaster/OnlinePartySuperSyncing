@@ -18,6 +18,8 @@ var config int SelectedOPSSTeam;
 
 var bool HasControllerSpawned;
 
+var Yoshi_HUDElement_OnlineSync SyncHUD;
+
 var array<Yoshi_SyncItem> Syncs;
 
 function SendSync(Yoshi_SyncItem SyncItem, string SyncString, Name CommandChannel) {
@@ -39,38 +41,10 @@ event OnOnlinePartyCommand(string Command, Name CommandChannel, Hat_GhostPartyPl
 	for(i = 0; i < Syncs.length; i++) {
 		if(CommandInfo[2] ~= string(Syncs[i].class)) {
 			Print("OPSS_RECEIVE => " @ `ShowVar(Command) @ `ShowVar(CommandChannel));
-			Syncs[i].OnReceiveSync(Command);
+			Syncs[i].OnReceiveSync(Command, Sender);
 		}
 	}
 }
-
-/*
-event Tick(float delta) {
-	local Hat_PlayerController pc;
-
-	pc = Hat_PlayerController(GetALocalPlayerController());
-
-	if(pc != None) {
-		if(Hat_HUD(pc.myHUD).GetHUD(class'Yoshi_HUDElement_OnlineSync') == None) {
-			Hat_HUD(pc.myHUD).OpenHUD(class'Yoshi_HUDElement_OnlineSync');
-		}
-
-		if(!HasReplacedLoadout) {
-			pc.MyLoadout = new class'Yoshi_Loadout';
-
-			if(pc.MyLoadout.class == class'Yoshi_Loadout') {
-				HasReplacedLoadout = true;
-
-				Yoshi_Loadout(pc.MyLoadout).GameMod = self;
-				Yoshi_Loadout(pc.MyLoadout).PlayerOwner = pc;
-				Yoshi_Loadout(pc.MyLoadout).SaveGame = Yoshi_Loadout(pc.MyLoadout).GetSaveGame();
-				`SaveManager.GetCurrentSaveData().LoadLoadout(pc);
-
-				Hat_Player(pc.Pawn).ServerInitialUpdates();
-			}
-		}
-	}
-}*/
 
 function OnNewBackpackItem(Hat_BackpackItem item) {
 	local int i;
@@ -99,10 +73,17 @@ event OnModLoaded() {
 	HookActorSpawn(class'Hat_PlayerController', 'Hat_PlayerController');
 }
 
+simulated event Tick(float delta) {
+	local int i;
+
+	for(i = 0; i < Syncs.length; i++) {
+		Syncs[i].Update(delta);
+	}
+}
+
 event OnHookedActorSpawn(Object NewActor, Name Identifier) {
 	if(!HasControllerSpawned && Identifier == 'Hat_PlayerController') {
 		HasControllerSpawned = true;
-		Print("OPSS_HOOKED " $ `ShowVar(NewActor));
 		SetTimer(0.1, false, NameOf(OnReady), self, NewActor);
 	}
 }
@@ -115,7 +96,7 @@ function OnReady(Object obj) {
 	if(pc != None) {
 
 		Print("OPSS_ONREADY " $ `ShowVar(pc));
-		Hat_HUD(pc.myHUD).OpenHUD(class'Yoshi_HUDElement_OnlineSync');
+		SyncHUD = Yoshi_HUDElement_OnlineSync(Hat_HUD(pc.myHUD).OpenHUD(class'Yoshi_HUDElement_OnlineSync'));
 
 		NewLoadout = new class'Yoshi_Loadout';
 		NewLoadout.GameMod = self;
@@ -125,6 +106,10 @@ function OnReady(Object obj) {
 		`SaveManager.GetCurrentSaveData().LoadLoadout(pc);
 		Hat_Player(pc.Pawn).ServerInitialUpdates();
 	}
+}
+
+function OnCelebrateSync(string PlayerName, string LocalizedItemName, Texture2D Texture) {
+	SyncHUD.PushSync(PlayerName, LocalizedItemName, Texture);
 }
 
 //Call it once then never again...

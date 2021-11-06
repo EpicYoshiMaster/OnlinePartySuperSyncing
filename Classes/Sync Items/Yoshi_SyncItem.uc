@@ -22,7 +22,7 @@ function OnAdded() {
 	}
 }
 
-function bool Update(float delta) {}
+function Update(float delta) {}
 
 function string ConvertToSync() {
 	return "Gaming";
@@ -34,8 +34,17 @@ function Sync(string SyncString) {
 	}
 }
 
-function OnReceiveSync(string SyncString) {
+function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 
+}
+
+function CelebrateSync(Hat_GhostPartyPlayerStateBase Sender, string LocalizedItemName, Texture2D Texture) {
+
+	if(GameMod != None) {
+		GameMod.OnCelebrateSync(Sender.GetDisplayName(), LocalizedItemName, Texture);
+	}
+
+	SpawnParticle(Texture);
 }
 
 function SpawnParticle(Texture2D Texture) {

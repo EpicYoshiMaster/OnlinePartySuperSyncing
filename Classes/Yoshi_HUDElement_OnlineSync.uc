@@ -1,6 +1,8 @@
 
 class Yoshi_HUDElement_OnlineSync extends Hat_HUDElement;
 
+const MAX_ROWS = 5;
+
 struct SyncRow {
 	var Texture2D Texture;
 	var string ItemName;
@@ -29,6 +31,31 @@ var float RowTextScale;
 var float RowMatScale;
 var float rowYStep;
 var float texOffset;
+
+function PushSync(string PlayerName, string LocalizedItemName, Texture2D Texture) {
+	local SyncRow NewSync;
+
+	NewSync.PlayerName = PlayerName;
+	NewSync.ItemName = LocalizedItemName;
+	NewSync.Texture = Texture;
+
+	SyncRows.AddItem(NewSync);
+
+	while (SyncRows.length > MAX_ROWS) {
+		if(!PopSync()) {
+			break;
+		}
+	}
+}
+
+function bool PopSync() {
+	if(SyncRows.length > 0) {
+		SyncRows.Remove(0, 1);
+		return true;
+	}
+
+	return false;
+}
 
 function bool Render(HUD H)
 {
@@ -92,9 +119,9 @@ defaultproperties
 	texOffset=1
 	rowYStep=2;
 
-	SyncRows(0)=(Texture=Texture2D'HatInTime_Hud_ItemIcons.Misc.token_icon',ItemName="Roulette Token",MapName="Mafia Town",PlayerName="xXMafia_BossXDXx")
-	SyncRows(1)=(Texture=Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_badge_sprint',ItemName="No Bonk Badge",MapName="Subcon Forest",PlayerName="#1 Snatcher Fan")
-	SyncRows(2)=(Texture=Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece',ItemName="Yellow Overpass Manhole",MapName="Nyakuza Metro",PlayerName="Timmy")
-	SyncRows(3)=(Texture=Texture2D'HatInTime_Hud_ItemIcons.yarn.yarn_ui_timestop',ItemName="Time Stop Yarn",MapName="Alpine Skyline",PlayerName="The Twilight Bell is This Way")
-	SyncRows(4)=(Texture=Texture2D'HatInTime_Hud_ItemIcons2.decoration_cake_a',ItemName="Relic",MapName="The Arctic Cruise",PlayerName="Egg")
+	//SyncRows(0)=(Texture=Texture2D'HatInTime_Hud_ItemIcons.Misc.token_icon',ItemName="Roulette Token",MapName="Mafia Town",PlayerName="xXMafia_BossXDXx")
+	//SyncRows(1)=(Texture=Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_badge_sprint',ItemName="No Bonk Badge",MapName="Subcon Forest",PlayerName="#1 Snatcher Fan")
+	//SyncRows(2)=(Texture=Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece',ItemName="Yellow Overpass Manhole",MapName="Nyakuza Metro",PlayerName="Timmy")
+	//SyncRows(3)=(Texture=Texture2D'HatInTime_Hud_ItemIcons.yarn.yarn_ui_timestop',ItemName="Time Stop Yarn",MapName="Alpine Skyline",PlayerName="The Twilight Bell is This Way")
+	//SyncRows(4)=(Texture=Texture2D'HatInTime_Hud_ItemIcons2.decoration_cake_a',ItemName="Relic",MapName="The Arctic Cruise",PlayerName="Egg")
 }

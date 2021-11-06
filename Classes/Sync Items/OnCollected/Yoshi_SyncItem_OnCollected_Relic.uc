@@ -2,7 +2,7 @@ class Yoshi_SyncItem_OnCollected_Relic extends Yoshi_SyncItem_OnCollected;
 
 var const Array< class< Hat_Collectible_Decoration > > DecorationPriorities;
 
-function OnReceiveSync(string SyncString) {
+function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	local array<string> arr;
 	local Hat_Player ply;
 	local class<Hat_Collectible_Decoration> RelicClass;
@@ -19,11 +19,12 @@ function OnReceiveSync(string SyncString) {
 
 	if(RelicClass != None) {
 		Hat_PlayerController(ply.Controller).GetLoadout().AddCollectible(RelicClass);
-		SpawnParticle(Texture2D(RelicClass.default.HUDIcon));
+
+		CelebrateSync(Sender, "RELIC NAME",Texture2D(RelicClass.default.HUDIcon));
 	}
 	else {
 		Hat_PlayerController(ply.Controller).GetLoadout().AddCollectible(class'Hat_Collectible_RouletteToken');
-		SpawnParticle(Texture2D(class'Hat_Collectible_RouletteToken'.default.HUDIcon));
+		CelebrateSync(Sender, "RELIC NAME",Texture2D(RelicClass.default.HUDIcon));
 	}
     
 	AddLevelBit(arr[1], int(arr[2]), arr[3]);

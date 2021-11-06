@@ -44,7 +44,7 @@ function OnValidCollectible(class<Object> ItemBackpackClass) {
 	Sync(collectibleString);
 }
 
-function OnReceiveSync(string SyncString) {
+function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	local array<string> arr;
 	local Hat_Player ply;
 	local class<Object> ItemBackpackClass;
@@ -55,5 +55,5 @@ function OnReceiveSync(string SyncString) {
 
 	Hat_PlayerController(ply.Controller).GetLoadout().AddBackpack(class'Hat_Loadout'.static.MakeBackpackItem(ItemBackpackClass),false);
 
-    SpawnParticle(GetTextureByName(arr[0]));
+	CelebrateSync(Sender, "BACKPACK ITEM NAME", GetTextureByName(arr[0]));
 }
