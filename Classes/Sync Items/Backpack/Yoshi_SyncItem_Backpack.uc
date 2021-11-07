@@ -28,7 +28,7 @@ function bool IsBlacklisted(class<Object> ItemBackpackClass) {
 	local int i;
 
 	for(i = 0; i < BlacklistedCollectibles.length; i++) {
-		if(ClassIsChildOf(ItemBackpackClass, WhitelistedCollectibles[i])) {
+		if(ClassIsChildOf(ItemBackpackClass, BlacklistedCollectibles[i])) {
 			return true;
 		}
 	}

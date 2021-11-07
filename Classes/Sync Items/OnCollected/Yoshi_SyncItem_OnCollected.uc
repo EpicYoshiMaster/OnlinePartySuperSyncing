@@ -25,7 +25,7 @@ function bool IsBlacklisted(Object InCollectible) {
 	local int i;
 
 	for(i = 0; i < BlacklistedCollectibles.length; i++) {
-		if(ClassIsChildOf(InCollectible.class, WhitelistedCollectibles[i])) {
+		if(ClassIsChildOf(InCollectible.class, BlacklistedCollectibles[i])) {
 			return true;
 		}
 	}

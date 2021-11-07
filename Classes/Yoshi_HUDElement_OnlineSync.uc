@@ -61,8 +61,9 @@ function bool Render(HUD H)
 {
 	local int i;
 	local float posx, posy, scale, ystep;
-    if (!Super.Render(H)) return false;
-    if (Hat_HUD(H) != None && Hat_HUD(H).bForceHideHud) return false;
+    if(!Super.Render(H)) return false;
+    if(Hat_HUD(H) != None && Hat_HUD(H).bForceHideHud) return false;
+	if(SyncRows.length <= 0) return true;
 
 	//Step 1: Draw Main Text
 	posx = H.Canvas.ClipX * HUDPosX;
