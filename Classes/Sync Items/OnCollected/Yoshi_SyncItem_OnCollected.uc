@@ -43,6 +43,7 @@ function OnValidCollectible(Object InCollectible) {
 
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	local array<string> arr;
+	local string LocalizedItemName;
 	local Hat_Player ply;
 	local Hat_Collectible_Important SpawnedCollectible;
 
@@ -57,6 +58,7 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 
 	//Spawn the collectible in, give it to the player, then say GOODBYE
 	SpawnedCollectible = `GameManager.Spawn(class<Hat_Collectible_Important>(class'Hat_ClassHelper'.static.ClassFromName(arr[0])),,,Vect(1000000,1000000,1000000));
+	LocalizedItemName = SpawnedCollectible.GetLocalizedItemName();
     SpawnedCollectible.GiveCollectible(ply);
     SpawnedCollectible.Destroy();
 
@@ -64,7 +66,7 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
         `GameManager.AddBadgeSlots(1);
     }
 
-	CelebrateSync(Sender,"COLLECTIBLE ITEM NAME",GetTextureByName(arr[0]));
+	CelebrateSync(Sender, LocalizedItemName, GetTextureByName(arr[0]));
 	AddLevelBit(arr[1], int(arr[2]), arr[3]);
 }
 

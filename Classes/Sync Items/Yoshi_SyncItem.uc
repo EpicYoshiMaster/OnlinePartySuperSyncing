@@ -3,6 +3,8 @@ class Yoshi_SyncItem extends Object
 	implements(Hat_GameEventsInterface)
 	abstract;
 
+const HAT_PACKAGE_NAME = "hatintimegamecontent";
+
 var Yoshi_OnlinePartySuperSync_GameMod GameMod;
 var const MaterialInterface SyncMaterial;
 var const ParticleSystem SyncParticle;
@@ -24,10 +26,6 @@ function OnAdded() {
 
 function Update(float delta) {}
 
-function string ConvertToSync() {
-	return "Gaming";
-}
-
 function Sync(string SyncString) {
 	if(GameMod != None) {
 		GameMod.SendSync(self, SyncString, GetCommandChannel());
@@ -36,6 +34,12 @@ function Sync(string SyncString) {
 
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 
+}
+
+//TODO: Implement this function everywhere
+function bool IsValidPackage(Object obj) {
+	//TODO: Check Config value for mod collectibles
+	return string(obj.GetPackageName()) ~= HAT_PACKAGE_NAME;
 }
 
 function CelebrateSync(Hat_GhostPartyPlayerStateBase Sender, string LocalizedItemName, Texture2D Texture) {

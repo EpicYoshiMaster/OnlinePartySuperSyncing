@@ -3,4 +3,7 @@ class Yoshi_SyncItem_DeathWishStamps_Passive extends Yoshi_SyncItem_DeathWishSta
 defaultproperties
 {
 	WhitelistedDeathWishes.Add(class'Hat_SnatcherContract_DeathWish_Passive');
+	BlacklistedDeathWishes.Add(class'Hat_SnatcherContract_DeathWish_CameraTourist_1')
+	BlacklistedDeathWishes.Add(class'Hat_SnatcherContract_DeathWish_KillEverybody')
+	BlacklistedDeathWishes.Add(class'Hat_SnatcherContract_DeathWish_NoAPresses')
 }

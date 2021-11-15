@@ -86,6 +86,33 @@ function Update(float delta) {
 	}
 }
 
+function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
+	local array<string> arr;
+	local class<Hat_SnatcherContract_DeathWish> DW;
+	local int ObjectiveID, ObjectiveProgress;
+
+	arr = SplitString(SyncString, "+");
+
+	if(arr.length < 2) return;
+
+	DW = class<Hat_SnatcherContract_DeathWish>(class'Hat_ClassHelper'.static.ClassFromName(arr[0]));
+	ObjectiveID = int(arr[1]);
+
+    if(DW.static.IsContractPerfected() || DW.static.IsObjectiveCompleted(ObjectiveID)) return;
+
+	//This is a sync with objective progress
+	if(arr.length >= 3) {
+		ObjectiveProgress = int(arr[2]);
+		if(DW.static.GetObjectiveProgress(ObjectiveID) >= ObjectiveProgress) return;
+
+		DW.static.SetObjectiveValue(ObjectiveID, ObjectiveProgress);
+	}
+	//This is a finished stamp sync
+	else {
+		DW.static.ForceUnlockObjective(ObjectiveID);
+	}
+}
+
 function UpdateActiveDWs()
 {
 	local int i, j;
