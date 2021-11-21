@@ -42,6 +42,11 @@ function bool IsValidPackage(Object obj) {
 	return string(obj.GetPackageName()) ~= HAT_PACKAGE_NAME;
 }
 
+//TODO: SCFOS != Mafia Town
+function bool IsInSameWorld(string MapName) {
+	return `GameManager.GetCurrentMapFilename() ~= MapName;
+}
+
 function CelebrateSync(Hat_GhostPartyPlayerStateBase Sender, string LocalizedItemName, Texture2D Texture) {
 
 	if(GameMod != None) {

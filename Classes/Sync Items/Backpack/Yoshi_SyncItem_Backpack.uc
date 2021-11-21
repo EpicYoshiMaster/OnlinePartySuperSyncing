@@ -39,8 +39,8 @@ function bool IsBlacklisted(class<Object> ItemBackpackClass) {
 function OnValidCollectible(class<Object> ItemBackpackClass) {
 	local string collectibleString;
 
-	//Send the class and the map
-	collectibleString = ItemBackpackClass $ "+" $ `GameManager.GetCurrentMapFilename();
+	//Send the class
+	collectibleString = string(ItemBackpackClass);
 	Sync(collectibleString);
 }
 

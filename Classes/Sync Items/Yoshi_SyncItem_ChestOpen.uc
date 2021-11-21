@@ -45,7 +45,7 @@ function Update(float delta) {
 	}	
 }
 
-function UpdateActors(string BitID) {
+function UpdateActors() {
 	local int i, UpdateVersion;
 	local string BitID;
 
@@ -62,7 +62,6 @@ function UpdateActors(string BitID) {
 
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	local array<string> arr;
-	local string BitID;
 
 	arr = SplitString(SyncString, "+");
 
@@ -72,7 +71,7 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	class'Hat_SaveBitHelper'.static.AddLevelBit(arr[0], 1, arr[1]);
 	
 	if(`GameManager.GetCurrentMapFilename() ~= arr[1]) {
-		UpdateActors(arr[0]);
+		UpdateActors();
 	}
 
 }

@@ -2,12 +2,17 @@
 class Yoshi_HUDElement_OnlineSync extends Hat_HUDElement;
 
 const MAX_ROWS = 5;
+const MAX_FADE_TIME = 0.5;
 
 struct SyncRow {
 	var Texture2D Texture;
 	var string ItemName;
 	var string MapName;
 	var string PlayerName;
+
+	var float FadeTime;
+	var bool IsFadingIn;
+	var bool IsFadingOut;
 
 	structdefaultproperties
 	{
@@ -38,6 +43,7 @@ function PushSync(string PlayerName, string LocalizedItemName, Texture2D Texture
 	NewSync.PlayerName = PlayerName;
 	NewSync.ItemName = LocalizedItemName;
 	NewSync.Texture = Texture;
+	NewSync.IsFadingIn = true;
 
 	SyncRows.AddItem(NewSync);
 
@@ -49,12 +55,42 @@ function PushSync(string PlayerName, string LocalizedItemName, Texture2D Texture
 }
 
 function bool PopSync() {
+	local int i;
 	if(SyncRows.length > 0) {
-		SyncRows.Remove(0, 1);
-		return true;
+
+		for(i = 0; i < SyncRows.length; i++) {
+			if(!SyncRows[i].IsFadingOut) {
+				SyncRows[i].IsFadingOut = true;
+				return true;
+			}
+		}
 	}
 
 	return false;
+}
+
+function bool Tick(HUD H, float delta)
+{
+	local int i;
+    if(!Super.Tick(H, delta)) return false;
+
+	for(i = 0; i < SyncRows.length; i++) {
+		if(SyncRows[i].IsFadingIn || SyncRows[i].IsFadingOut) {
+			SyncRows[i].FadeTime += delta;
+
+			if(SyncRows[i].FadeTime >= MAX_FADE_TIME) {
+				if(SyncRows[i].IsFadingOut) {
+					SyncRows.Remove(i, 1);
+					i--;
+				}
+				else {
+					SyncRows[i].IsFadingIn = false;
+				}
+			}
+		}
+	}
+
+	return true;
 }
 
 function bool Render(HUD H)
@@ -70,8 +106,8 @@ function bool Render(HUD H)
 	posy = H.Canvas.ClipY * HUDPosY;
 
 	scale = H.Canvas.ClipY * 0.01; //Base initial scaling on 1% of the screen
-
-	H.Canvas.SetDrawColorStruct(DrawColor);
+	
+	H.Canvas.SetDrawColorStruct(default.DrawColor);
 	H.Canvas.Font = class'Hat_FontInfo'.static.GetDefaultFont("Recent Syncs");
 	DrawBorderedText(H.Canvas, "Recent Syncs", posx - scale * MainTextOffset, posy, scale * MainTextScale, true, TextAlign_Left,0.5,4.0);
 
@@ -81,6 +117,19 @@ function bool Render(HUD H)
 
 	//Step 2: Render Rows
 	for(i = 0; i < SyncRows.length; i++) {
+
+		//Set the Draw Color Alpha
+		if(SyncRows[i].IsFadingIn) {
+			DrawColor.A = Lerp(0.0, 255.0, (SyncRows[i].FadeTime / MAX_FADE_TIME));
+		}
+		else if(SyncRows[i].IsFadingOut) {
+			DrawColor.A = Lerp(255.0, 0.0, (SyncRows[i].FadeTime / MAX_FADE_TIME));
+		}
+		else {
+			DrawColor.A = default.DrawColor.A;
+		}
+
+		H.Canvas.SetDrawColorStruct(DrawColor);
 
 		//Render the Item Name
 		DrawTopLeftText(H.Canvas, SyncRows[i].ItemName, posx, posy, scale * RowTextScale, scale * RowTextScale);
@@ -120,9 +169,9 @@ defaultproperties
 	texOffset=1
 	rowYStep=2;
 
-	//SyncRows(0)=(Texture=Texture2D'HatInTime_Hud_ItemIcons.Misc.token_icon',ItemName="Roulette Token",MapName="Mafia Town",PlayerName="xXMafia_BossXDXx")
-	//SyncRows(1)=(Texture=Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_badge_sprint',ItemName="No Bonk Badge",MapName="Subcon Forest",PlayerName="#1 Snatcher Fan")
-	//SyncRows(2)=(Texture=Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece',ItemName="Yellow Overpass Manhole",MapName="Nyakuza Metro",PlayerName="Timmy")
-	//SyncRows(3)=(Texture=Texture2D'HatInTime_Hud_ItemIcons.yarn.yarn_ui_timestop',ItemName="Time Stop Yarn",MapName="Alpine Skyline",PlayerName="The Twilight Bell is This Way")
-	//SyncRows(4)=(Texture=Texture2D'HatInTime_Hud_ItemIcons2.decoration_cake_a',ItemName="Relic",MapName="The Arctic Cruise",PlayerName="Egg")
+	SyncRows(0)=(Texture=Texture2D'HatInTime_Hud_ItemIcons.Misc.token_icon',ItemName="Roulette Token",MapName="Mafia Town",PlayerName="xXMafia_BossXDXx")
+	SyncRows(1)=(Texture=Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_badge_sprint',ItemName="No Bonk Badge",MapName="Subcon Forest",PlayerName="#1 Snatcher Fan")
+	SyncRows(2)=(Texture=Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece',ItemName="Yellow Overpass Manhole",MapName="Nyakuza Metro",PlayerName="Timmy")
+	SyncRows(3)=(Texture=Texture2D'HatInTime_Hud_ItemIcons.yarn.yarn_ui_timestop',ItemName="Time Stop Yarn",MapName="Alpine Skyline",PlayerName="The Twilight Bell is This Way")
+	SyncRows(4)=(Texture=Texture2D'HatInTime_Hud_ItemIcons2.decoration_cake_a',ItemName="Relic",MapName="The Arctic Cruise",PlayerName="Egg")
 }

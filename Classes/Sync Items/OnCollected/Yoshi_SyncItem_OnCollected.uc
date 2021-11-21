@@ -142,6 +142,7 @@ function UpdateActorStatus(string LevelBitID) {
 		}
     }
 
+	//Sent through collectible	
     foreach GameMod.DynamicActors(class'Hat_ImpactInteract_Breakable_ChemicalBadge', CB) {
         if(class'Hat_SaveBitHelper'.static.GetBitId(CB) == LevelBitID) {
             CB.PostBeginPlay();
@@ -149,13 +150,7 @@ function UpdateActorStatus(string LevelBitID) {
         }
     }
 
-    foreach GameMod.DynamicActors(class'Hat_TreasureChest_Base', TC) {
-        if(class'Hat_SaveBitHelper'.static.GetBitId(TC) == LevelBitID) {
-            TC.Empty();
-            return;
-        }
-    }
-
+	//Sent through collectible
     foreach GameMod.DynamicActors(class'Hat_Goodie_Vault_Base', GV) {
         if(class'Hat_SaveBitHelper'.static.GetBitId(GV) == LevelBitID) {
             GV.RemoveContentAlreadyCollected();
@@ -163,6 +158,7 @@ function UpdateActorStatus(string LevelBitID) {
         }
     }
 
+	//Sent through collectible
     foreach GameMod.DynamicActors(class'Hat_NPC_Bullied', B) {
 		if(class'Hat_SaveBitHelper'.static.GetBitId(B) == LevelBitID) {
 			B.RemoveRewardsAlreadyCollected();
