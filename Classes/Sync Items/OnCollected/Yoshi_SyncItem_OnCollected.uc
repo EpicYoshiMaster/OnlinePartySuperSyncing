@@ -105,14 +105,10 @@ function DestroyCollectible(string LevelBitID) {
 //FIX THIS UNGODLY MESS SOMETIME PLEASE
 //When Actors have their Level Bits changed directly, you'll need to give them a nudge to make them do their thing
 function UpdateActorStatus(string LevelBitID) {
-    local int i;
     local Hat_ImpactInteract_Breakable_ChemicalBadge CB;
-    local Hat_TreasureChest_Base TC;
     local Hat_Goodie_Vault_Base GV;
     local Hat_NPC_Bullied B;
     local Hat_Collectible_Important CI;
-    local Hat_SandStationHorn_Base SSH;
-    local Hat_Bonfire_Base BB;
 
     if(LevelBitID == "" || GameMod == None) return;
 
@@ -121,25 +117,6 @@ function UpdateActorStatus(string LevelBitID) {
         if(class'Hat_SaveBitHelper'.static.GetBitId(CI) == LevelBitID) {
             CI.Destroy();
         }
-    }
-    
-    foreach GameMod.DynamicActors(class'Hat_SandStationHorn_Base', SSH) {
-        if(class'Hat_SaveBitHelper'.static.GetBitId(SSH) == LevelBitID) {
-            SSH.isActivated = true;
-            for(i = 0; i < ArrayCount(SSH.TargetUnlocks); i++) {
-                if(SSH.TargetUnlocks[i] != None) {
-                    Hat_SandTravelNode(SSH.TargetUnlocks[i]).UpdateHookStatus();
-                }
-            }
-            return;
-        }
-    }
-
-    foreach GameMod.DynamicActors(class'Hat_Bonfire_Base', BB) {
-        if(class'Hat_SaveBitHelper'.static.GetBitId(BB) == LevelBitID) {
-			BB.OnCompleted(true);
-            return;
-		}
     }
 
 	//Sent through collectible	
