@@ -5,7 +5,7 @@ const MAX_ROWS = 5;
 const MAX_FADE_TIME = 0.5;
 
 struct SyncRow {
-	var Texture2D Texture;
+	var Surface Icon;
 	var string ItemName;
 	var string MapName;
 	var string PlayerName;
@@ -16,7 +16,7 @@ struct SyncRow {
 
 	structdefaultproperties
 	{
-		Texture=Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_unknown'
+		Icon=Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_unknown'
 		ItemName="???"
 		MapName="Unknown"
 		PlayerName="Anonymous"
@@ -37,12 +37,13 @@ var float RowMatScale;
 var float rowYStep;
 var float texOffset;
 
-function PushSync(string PlayerName, string LocalizedItemName, Texture2D Texture) {
+function PushSync(Hat_GhostPartyPlayerStateBase state, string LocalizedItemName, Surface Icon) {
 	local SyncRow NewSync;
 
-	NewSync.PlayerName = PlayerName;
+	NewSync.PlayerName = state.GetDisplayName();
+	NewSync.MapName = state.CurrentMapName;
 	NewSync.ItemName = LocalizedItemName;
-	NewSync.Texture = Texture;
+	NewSync.Icon = Icon;
 	NewSync.IsFadingIn = true;
 
 	SyncRows.AddItem(NewSync);
@@ -147,7 +148,7 @@ function bool Render(HUD H)
 		posy += ystep;
 
 		//Render the Texture
-		DrawBottomRight(H, posx - scale * texOffset, posy, scale * RowMatScale, scale * RowMatScale, SyncRows[i].Texture);
+		DrawBottomRight(H, posx - scale * texOffset, posy, scale * RowMatScale, scale * RowMatScale, SyncRows[i].Icon);
 
 		posy += ystep;
 	}
@@ -169,9 +170,9 @@ defaultproperties
 	texOffset=1
 	rowYStep=2;
 
-	SyncRows(0)=(Texture=Texture2D'HatInTime_Hud_ItemIcons.Misc.token_icon',ItemName="Roulette Token",MapName="Mafia Town",PlayerName="xXMafia_BossXDXx")
-	SyncRows(1)=(Texture=Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_badge_sprint',ItemName="No Bonk Badge",MapName="Subcon Forest",PlayerName="#1 Snatcher Fan")
-	SyncRows(2)=(Texture=Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece',ItemName="Yellow Overpass Manhole",MapName="Nyakuza Metro",PlayerName="Timmy")
-	SyncRows(3)=(Texture=Texture2D'HatInTime_Hud_ItemIcons.yarn.yarn_ui_timestop',ItemName="Time Stop Yarn",MapName="Alpine Skyline",PlayerName="The Twilight Bell is This Way")
-	SyncRows(4)=(Texture=Texture2D'HatInTime_Hud_ItemIcons2.decoration_cake_a',ItemName="Relic",MapName="The Arctic Cruise",PlayerName="Egg")
+	SyncRows(0)=(Icon=Texture2D'HatInTime_Hud_ItemIcons.Misc.token_icon',ItemName="Roulette Token",MapName="Mafia Town",PlayerName="xXMafia_BossXDXx")
+	SyncRows(1)=(Icon=Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_badge_sprint',ItemName="No Bonk Badge",MapName="Subcon Forest",PlayerName="#1 Snatcher Fan")
+	SyncRows(2)=(Icon=Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece',ItemName="Yellow Overpass Manhole",MapName="Nyakuza Metro",PlayerName="Timmy")
+	SyncRows(3)=(Icon=Texture2D'HatInTime_Hud_ItemIcons.yarn.yarn_ui_timestop',ItemName="Time Stop Yarn",MapName="Alpine Skyline",PlayerName="The Twilight Bell is This Way")
+	SyncRows(4)=(Icon=Texture2D'HatInTime_Hud_ItemIcons2.decoration_cake_a',ItemName="Relic",MapName="The Arctic Cruise",PlayerName="Egg")
 }

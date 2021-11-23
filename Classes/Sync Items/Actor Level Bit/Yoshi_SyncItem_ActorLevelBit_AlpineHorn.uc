@@ -16,6 +16,10 @@ function SyncActor(Actor a) {
 	}
 }
 
+static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+	return class'Hat_HUDElementLocationBanner'.default.HornTexture;
+}
+
 defaultproperties
 {
 	ActorClasses.Add(class'Hat_SandStationHorn_Base');

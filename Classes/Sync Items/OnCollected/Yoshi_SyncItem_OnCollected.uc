@@ -38,6 +38,8 @@ function OnValidCollectible(Object InCollectible) {
 
 	//Send the class, then the level bit, then the map
 	collectibleString = InCollectible.class $ "+" $ GetLevelBitId(InCollectible) $ "+" $ GetLevelBitValue(InCollectible) $ "+" $ `GameManager.GetCurrentMapFilename();
+
+	Print("OPSS_LOCALIZETEST " @ `ShowVar(self.class) @ `ShowVar(InCollectible) @ "Localized Texture: " $ GetHUDIcon(InCollectible.class));
 	Sync(collectibleString);
 }
 
@@ -45,6 +47,7 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	local array<string> arr;
 	local string LocalizedItemName;
 	local Hat_Player ply;
+	local class<Hat_Collectible_Important> SpawnedCollectibleClass;
 	local Hat_Collectible_Important SpawnedCollectible;
 
 	arr = SplitString(SyncString, "+");
@@ -57,7 +60,8 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	ply = Hat_Player(class'Engine'.static.GetEngine().GamePlayers[0].Actor.Pawn);
 
 	//Spawn the collectible in, give it to the player, then say GOODBYE
-	SpawnedCollectible = `GameManager.Spawn(class<Hat_Collectible_Important>(class'Hat_ClassHelper'.static.ClassFromName(arr[0])),,,Vect(1000000,1000000,1000000));
+	SpawnedCollectibleClass = class<Hat_Collectible_Important>(class'Hat_ClassHelper'.static.ClassFromName(arr[0]));	
+	SpawnedCollectible = `GameManager.Spawn(SpawnedCollectibleClass,,,Vect(1000000,1000000,1000000));
 	LocalizedItemName = SpawnedCollectible.GetLocalizedItemName();
     SpawnedCollectible.GiveCollectible(ply);
     SpawnedCollectible.Destroy();
@@ -66,8 +70,29 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
         `GameManager.AddBadgeSlots(1);
     }
 
-	CelebrateSync(Sender, LocalizedItemName, GetTextureByName(arr[0]));
+	CelebrateSync(Sender, LocalizedItemName, GetHUDIcon(SpawnedCollectibleClass));
 	AddLevelBit(arr[1], int(arr[2]), arr[3]);
+}
+
+static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+	local class<Hat_Collectible_Important> ImportantClass;
+	local class<Hat_CosmeticItem> InventoryClass;
+
+	ImportantClass = class<Hat_Collectible_Important>(SyncClass);
+
+	if(ImportantClass != None) {
+
+		if(ImportantClass.default.HUDIcon != None) {
+			return ImportantClass.default.HUDIcon;
+		}
+
+		InventoryClass = class<Hat_CosmeticItem>(ImportantClass.default.InventoryClass);
+		if(InventoryClass != None && InventoryClass.default.HUDIcon != None) {
+			return InventoryClass.default.HUDIcon;
+		}
+	}
+
+	return Super.GetHUDIcon(SyncClass);
 }
 
 function bool HasLevelBit(string ID, int Value, string MapName) {

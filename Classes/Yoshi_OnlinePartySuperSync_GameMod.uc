@@ -108,8 +108,8 @@ function OnReady(Object obj) {
 	}
 }
 
-function OnCelebrateSync(string PlayerName, string LocalizedItemName, Texture2D Texture) {
-	SyncHUD.PushSync(PlayerName, LocalizedItemName, Texture);
+function OnCelebrateSync(Hat_GhostPartyPlayerStateBase state, string LocalizedItemName, Surface Icon) {
+	SyncHUD.PushSync(state, LocalizedItemName, Icon);
 }
 
 //Call it once then never again...

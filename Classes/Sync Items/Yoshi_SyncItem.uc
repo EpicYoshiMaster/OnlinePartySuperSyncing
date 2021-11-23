@@ -47,16 +47,18 @@ function bool IsInSameWorld(string MapName) {
 	return `GameManager.GetCurrentMapFilename() ~= MapName;
 }
 
-function CelebrateSync(Hat_GhostPartyPlayerStateBase Sender, string LocalizedItemName, Texture2D Texture) {
+function CelebrateSync(Hat_GhostPartyPlayerStateBase Sender, string LocalizedItemName, Surface Icon) {
 
 	if(GameMod != None) {
-		GameMod.OnCelebrateSync(Sender.GetDisplayName(), LocalizedItemName, Texture);
+		GameMod.OnCelebrateSync(Sender, LocalizedItemName, Icon);
 	}
 
-	SpawnParticle(Texture);
+	if(Texture(Icon) != None) {
+		SpawnParticle(Texture(Icon));
+	}
 }
 
-function SpawnParticle(Texture2D Texture) {
+function SpawnParticle(Texture Tex) {
 	local MaterialInstanceConstant GenMat;
 	local LinearColor TeamColor;
 
@@ -67,7 +69,7 @@ function SpawnParticle(Texture2D Texture) {
     GenMat.SetParent(SyncMaterial);
 	TeamColor = GameMod.GetTeamColor();
     GenMat.SetVectorParameterValue('TeamColor', TeamColor);
-    GenMat.SetTextureParameterValue('Diffuse', Texture);
+    GenMat.SetTextureParameterValue('Diffuse', Tex);
 
 	CreateParticle(SyncParticle, GenMat, ParticleScale);
 }
@@ -76,60 +78,11 @@ static function Name GetCommandChannel() {
 	return class'YoshiPrivate_OnlinePartySuperSync_Commands'.const.OPSSItem;
 }
 
-//Where we get the icon, if you ever see a ? then I missed an approach to find the HUDIcon
-static function Texture2D GetTextureByName(string Collectible) {
-    local Class<Object> CollectibleClass;
-    CollectibleClass = class'Hat_ClassHelper'.static.ClassFromName(Collectible);
-    if(class<Hat_Collectible_Important>(CollectibleClass) != None) {
-        if(Texture2D(class<Hat_Collectible_Important>(CollectibleClass).default.HUDIcon) != None) {
-            return Texture2D(class<Hat_Collectible_Important>(CollectibleClass).default.HUDIcon);
-        }
+//This function should be overridden by child classes to determine the HUD Icons for various sync types.
+static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+	Print("OPSS_ERR_HUDICON GetHUDIcon: Failed to grab Icon! " @ `ShowVar(SyncClass));
 
-        if(class<Hat_Collectible_Important>(CollectibleClass).default.InventoryClass != None) {
-            if(Texture2D(class<Hat_CosmeticItem>(class<Hat_Collectible_Important>(CollectibleClass).default.InventoryClass).default.HUDIcon) != None) {
-                return Texture2D(class<Hat_CosmeticItem>(class<Hat_Collectible_Important>(CollectibleClass).default.InventoryClass).default.HUDIcon);
-            }
-        }
-    }
-
-    if(class<Hat_CosmeticItem>(CollectibleClass) != None) {
-        if(Texture2D(class<Hat_CosmeticItem>(CollectibleClass).default.HUDIcon) != None) {
-            return Texture2D(class<Hat_CosmeticItem>(CollectibleClass).default.HUDIcon);
-        }
-    }
-
-    if(class<Hat_CosmeticItemQualityInfo>(CollectibleClass) != None) {
-        if(Texture2D(class<Hat_CosmeticItemQualityInfo>(CollectibleClass).default.HUDIcon) != None) {
-            return Texture2D(class<Hat_CosmeticItemQualityInfo>(CollectibleClass).default.HUDIcon);
-        }
-    }
-
-    if(class<Hat_Bonfire_Base>(CollectibleClass) != None) {
-        if(class<Hat_Bonfire_Base>(CollectibleClass).default.HUDIcon != None) {
-            return class<Hat_Bonfire_Base>(CollectibleClass).default.HUDIcon;
-        }
-        
-    }
-
-    if(class<Hat_SandStationHorn_Base>(CollectibleClass) != None) {
-        return Texture2D'HatInTime_Hud_LocationBanner.Textures.vikinghorn';
-    }
-
-    if(class<Hat_Weapon>(CollectibleClass) != None) {
-        if(class<Hat_Weapon>(CollectibleClass).default.HUDIcon != None) {
-            return class<Hat_Weapon>(CollectibleClass).default.HUDIcon;
-        }
-    }
-
-    if(class<Hat_Collectible_EnergyBit>(CollectibleClass) != None) {
-        return Texture2D'HatInTime_Hud.Textures.EnergyBit';
-    }
-
-    if(class<Hat_Collectible_HealthBit>(CollectibleClass) != None) {
-        return Texture2D'HatInTime_Hud2.Textures.health_pon';
-    }
-
-    return Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_unknown';
+	return Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_unknown';
 }
 
 //Makes the cool icon that shows up when you get a sync

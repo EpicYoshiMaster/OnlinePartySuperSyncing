@@ -28,9 +28,12 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	ShouldBlockTimePiece = true; //Otherwise an infinite loop of OP Commands occurs
     `GameManager.GiveTimePiece(arr[0], 1 == int(arr[1]));
 
-
-	CelebrateSync(Sender, "COOL TIME PIECE NAME", Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece');
+	CelebrateSync(Sender, "COOL TIME PIECE NAME", GetHUDIcon());
 	UpdatePowerPanels();
+}
+
+static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+	return class'Hat_ObjectiveActor_TimePiece'.default.HUDIcon;
 }
 
 function UpdatePowerPanels() {

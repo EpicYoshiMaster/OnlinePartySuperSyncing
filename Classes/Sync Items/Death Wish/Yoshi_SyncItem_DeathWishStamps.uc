@@ -113,6 +113,18 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	}
 }
 
+static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+	local class<Hat_SnatcherContract> ContractClass;
+
+	ContractClass = class<Hat_SnatcherContract>(SyncClass);
+
+	if(ContractClass != None && ContractClass.default.HUDIcon != None) {
+		return ContractClass.default.HUDIcon;
+	}
+
+	return Super.GetHUDIcon(SyncClass);
+}
+
 function UpdateActiveDWs()
 {
 	local int i, j;

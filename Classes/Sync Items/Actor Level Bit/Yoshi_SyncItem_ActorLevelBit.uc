@@ -5,6 +5,8 @@ var const array< class<Actor> > ActorClasses;
 
 var array<Actor> MapActors;
 
+var bool ShouldCelebrateSync;
+
 function OnPostInitGame() {
 	local Actor a;
 	local string BitID;
@@ -91,4 +93,11 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	if(`GameManager.GetCurrentMapFilename() ~= arr[1]) {
 		UpdateActors();
 	}
+
+	//TODO: Celebration!!!
+}
+
+defaultproperties
+{
+	ShouldCelebrateSync=true
 }

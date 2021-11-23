@@ -9,4 +9,6 @@ function SyncActor(Actor a) {
 defaultproperties
 {
 	ActorClasses.Add(class'Hat_TreasureChest_Base');
+
+	ShouldCelebrateSync=false
 }
