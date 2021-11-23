@@ -1,6 +1,18 @@
 class Yoshi_SyncItem_Backpack_Weapon extends Yoshi_SyncItem_Backpack;
 
-static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+static function string GetLocalization(optional Object SyncClass) {
+	local class<Hat_Weapon> WeaponClass;
+
+	WeaponClass = class<Hat_Weapon>(SyncClass);
+
+	if(WeaponClass != None) {
+		return WeaponClass.static.GetLocalizedName();
+	}
+
+	return Super.GetLocalization(SyncClass);
+}
+
+static function Surface GetHUDIcon(optional Object SyncClass) {
 	local class<Hat_Weapon> WeaponClass;
 
 	WeaponClass = class<Hat_Weapon>(SyncClass);

@@ -39,13 +39,12 @@ function OnValidCollectible(Object InCollectible) {
 	//Send the class, then the level bit, then the map
 	collectibleString = InCollectible.class $ "+" $ GetLevelBitId(InCollectible) $ "+" $ GetLevelBitValue(InCollectible) $ "+" $ `GameManager.GetCurrentMapFilename();
 
-	Print("OPSS_LOCALIZETEST " @ `ShowVar(self.class) @ `ShowVar(InCollectible) @ "Localized Texture: " $ GetHUDIcon(InCollectible.class));
+	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(InCollectible) @ "Name:" @ GetLocalization(InCollectible.class) @ "Icon: " $ GetHUDIcon(InCollectible.class));
 	Sync(collectibleString);
 }
 
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	local array<string> arr;
-	local string LocalizedItemName;
 	local Hat_Player ply;
 	local class<Hat_Collectible_Important> SpawnedCollectibleClass;
 	local Hat_Collectible_Important SpawnedCollectible;
@@ -62,7 +61,6 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	//Spawn the collectible in, give it to the player, then say GOODBYE
 	SpawnedCollectibleClass = class<Hat_Collectible_Important>(class'Hat_ClassHelper'.static.ClassFromName(arr[0]));	
 	SpawnedCollectible = `GameManager.Spawn(SpawnedCollectibleClass,,,Vect(1000000,1000000,1000000));
-	LocalizedItemName = SpawnedCollectible.GetLocalizedItemName();
     SpawnedCollectible.GiveCollectible(ply);
     SpawnedCollectible.Destroy();
 
@@ -70,13 +68,23 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
         `GameManager.AddBadgeSlots(1);
     }
 
-	CelebrateSync(Sender, LocalizedItemName, GetHUDIcon(SpawnedCollectibleClass));
+	CelebrateSync(Sender, GetLocalization(SpawnedCollectibleClass), GetHUDIcon(SpawnedCollectibleClass));
 	AddLevelBit(arr[1], int(arr[2]), arr[3]);
 }
 
-static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+static function string GetLocalization(optional Object SyncClass) {
 	local class<Hat_Collectible_Important> ImportantClass;
-	local class<Hat_CosmeticItem> InventoryClass;
+
+	ImportantClass = class<Hat_Collectible_Important>(SyncClass);
+	if(ImportantClass != None) {
+		return ImportantClass.static.GetLocalizedItemName();
+	}
+
+	return Super.GetLocalization(SyncClass);
+}
+
+static function Surface GetHUDIcon(optional Object SyncClass) {
+	local class<Hat_Collectible_Important> ImportantClass;
 
 	ImportantClass = class<Hat_Collectible_Important>(SyncClass);
 
@@ -84,11 +92,6 @@ static function Surface GetHUDIcon(optional class<Object> SyncClass) {
 
 		if(ImportantClass.default.HUDIcon != None) {
 			return ImportantClass.default.HUDIcon;
-		}
-
-		InventoryClass = class<Hat_CosmeticItem>(ImportantClass.default.InventoryClass);
-		if(InventoryClass != None && InventoryClass.default.HUDIcon != None) {
-			return InventoryClass.default.HUDIcon;
 		}
 	}
 

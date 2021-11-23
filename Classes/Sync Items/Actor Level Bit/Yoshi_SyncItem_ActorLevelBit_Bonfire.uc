@@ -6,17 +6,20 @@ function SyncActor(Actor a) {
 	}
 }
 
-static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+static function Surface GetHUDIcon(optional Object SyncClass) {
 	local class<Hat_Bonfire_Base> BonfireClass;
 
 	BonfireClass = class<Hat_Bonfire_Base>(SyncClass);
 
-	if(BonfireClass != None && BonfireClass.default.HUDICon != None) {
+	if(BonfireClass != None && BonfireClass.default.HUDIcon != None) {
 		return BonfireClass.default.HUDIcon;
 	}
+
+	return Super.GetHUDIcon(SyncClass);
 }
 
 defaultproperties
 {
 	ActorClasses.Add(class'Hat_Bonfire_Base');
+	LocalizedNameKey="BonfireName"
 }

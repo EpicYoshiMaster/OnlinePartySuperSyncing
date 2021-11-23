@@ -46,8 +46,7 @@ function bool IsBlacklisted(class<Object> CheckClass) {
 function OnValidCollectible(class<Object> CheckClass) {
 	local string collectibleString;
 
-	//DEBUG: Texture Tests
-	Print("OPSS_LOCALIZETEST " @ `ShowVar(self.class) @ `ShowVar(CheckClass) @ "Localized Texture: " $ GetHUDIcon(CheckClass));
+	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(CheckClass) @ "Name: " @ GetLocalization(CheckClass) @ "Icon: " $ GetHUDIcon(CheckClass));
 
 	//Send the class
 	collectibleString = string(CheckClass);
@@ -71,12 +70,40 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 		ItemBackpackClass = ItemQualityInfo.default.CosmeticItemWeApplyTo;
 	}
 
-	Hat_PlayerController(ply.Controller).GetLoadout().AddBackpack(class'Hat_Loadout'.static.MakeLoadoutItem(ItemBackpackClass, ItemQualityInfo),false);
+	if(!Hat_PlayerController(ply.Controller).GetLoadout().AddBackpack(class'Hat_Loadout'.static.MakeLoadoutItem(ItemBackpackClass, ItemQualityInfo), false)) return;
 
-	CelebrateSync(Sender, "BACKPACK ITEM NAME", GetHUDIcon(ItemBackpackClass));
+	if(!UseItemQualityInfo) {
+		CelebrateSync(Sender, GetLocalization(ItemBackpackClass), GetHUDIcon(ItemBackpackClass));
+	}
+	else {
+		CelebrateSync(Sender, GetLocalization(ItemQualityInfo), GetHUDIcon(ItemQualityInfo));
+	}
 }
 
-static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+static function string GetLocalization(optional Object SyncClass) {
+	local class<Hat_CosmeticItem> InventoryClass;
+	local class<Hat_CosmeticItemQualityInfo> CosmeticQualityInfoClass;
+
+	InventoryClass = class<Hat_CosmeticItem>(SyncClass);
+	if(InventoryClass != None) {
+		return InventoryClass.static.GetLocalizedName(InventoryClass.default.MyItemQualityInfo);
+	}
+
+	CosmeticQualityInfoClass = class<Hat_CosmeticItemQualityInfo>(SyncClass);
+
+	if(CosmeticQualityInfoClass != None) {
+		InventoryClass = class<Hat_CosmeticItem>(CosmeticQualityInfoClass.default.CosmeticItemWeApplyTo);
+
+		if(InventoryClass != None) {
+			return InventoryClass.Static.GetLocalizedName(CosmeticQualityInfoClass);
+		}
+	}
+
+	//Backpack items can end up being collectibles, this is a bit weird but it gets the job done
+	return class'Yoshi_SyncItem_OnCollected'.static.GetLocalization(SyncClass);
+}
+
+static function Surface GetHUDIcon(optional Object SyncClass) {
 	local class<Hat_CosmeticItem> CosmeticClass;
 	local class<Hat_CosmeticItemQualityInfo> CosmeticQualityInfoClass;
 

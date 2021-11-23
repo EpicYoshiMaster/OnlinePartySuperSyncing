@@ -23,7 +23,17 @@ function Update(float delta) {
 	if(HasAlpineIntroBit()) {
 		Sync(ALPINE_INTRO_BIT_NAME);
 		AlreadyHasBit = true;
+
+		Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ "Name: " @ GetLocalization() @ "Icon: " $ GetHUDIcon());
 	}
+}
+
+static function string GetLocalization(optional Object SyncClass) {
+	return Localize("UnrealEd", "MainMenu_ChangeAct_FreeRoam_Intro", "UnrealEd");
+}
+
+static function Surface GetHUDIcon(optional Object SyncClass) {
+	return Texture2D'HatInTime_Hud_LocationBanner.Textures.vikinghorn';
 }
 
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
@@ -31,4 +41,6 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 
 	class'Hat_SaveBitHelper'.static.AddLevelBit(ALPINE_INTRO_BIT_NAME, 1, ALPINE_MAP_NAME);
 	AlreadyHasBit = true;
+
+	CelebrateSync(Sender, GetLocalization(), GetHUDIcon());
 }

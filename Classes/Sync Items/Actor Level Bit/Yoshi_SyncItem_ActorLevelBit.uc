@@ -1,11 +1,13 @@
 class Yoshi_SyncItem_ActorLevelBit extends Yoshi_SyncItem
 	abstract;
 
+const ACTOR_BIT_HEADER = "actorlevelbits";
+
 var const array< class<Actor> > ActorClasses;
 
 var array<Actor> MapActors;
-
 var bool ShouldCelebrateSync;
+var string LocalizedNameKey;
 
 function OnPostInitGame() {
 	local Actor a;
@@ -23,7 +25,7 @@ function OnPostInitGame() {
 		}
 	}
 
-	Print("OPSS_ONPOSTINITGAME " @ `ShowVar(MapActors.length));
+	//Print("OPSS_ONPOSTINITGAME =>" @ `ShowVar(MapActors.length));
 }
 
 function bool IsTrackableActor(Actor a) {
@@ -56,6 +58,10 @@ function Update(float delta) {
 			SyncString = BitID $ "+" $ `GameManager.GetCurrentMapFilename();
 			Sync(SyncString);
 
+			if(ShouldCelebrateSync) {
+				Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ "Name: " @ GetLocalization(MapActors[i].class) @ "Icon: " $ GetHUDIcon(MapActors[i].class));
+			}
+			
 			MapActors.Remove(i, 1);
 			i--;
 		}
@@ -80,6 +86,10 @@ function SyncActor(Actor a) {
 
 }
 
+static function string GetLocalization(optional Object SyncClass) {
+	return Localize(ACTOR_BIT_HEADER, default.LocalizedNameKey, OPSS_LOCALIZATION_FILENAME);
+}
+
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	local array<string> arr;
 
@@ -94,7 +104,9 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 		UpdateActors();
 	}
 
-	//TODO: Celebration!!!
+	if(ShouldCelebrateSync) {
+		CelebrateSync(Sender, GetLocalization(), GetHUDIcon());
+	}
 }
 
 defaultproperties

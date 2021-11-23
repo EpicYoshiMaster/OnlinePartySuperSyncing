@@ -16,11 +16,12 @@ function SyncActor(Actor a) {
 	}
 }
 
-static function Surface GetHUDIcon(optional class<Object> SyncClass) {
-	return class'Hat_HUDElementLocationBanner'.default.HornTexture;
+static function Surface GetHUDIcon(optional Object SyncClass) {
+	return Texture2D'HatInTime_Hud_LocationBanner.Textures.vikinghorn';
 }
 
 defaultproperties
 {
 	ActorClasses.Add(class'Hat_SandStationHorn_Base');
+	LocalizedNameKey="AlpineHornName"
 }

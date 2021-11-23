@@ -71,6 +71,8 @@ function Update(float delta) {
 			//Print("OPSS_DEATHWISH =>" @ `ShowVar(DeathWishBits[i].Contract) @ `ShowVar(DeathWishBits[i].ObjectiveID));
 			SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
 
+			Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
+
 			Sync(SyncString);
 
 			DeathWishBits.Remove(i, 1);
@@ -80,6 +82,8 @@ function Update(float delta) {
 			DeathWishBits[i].ObjectiveProgress = NewProgress;
 
 			SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID $ "+" $ NewProgress;
+
+			Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
 
 			Sync(SyncString);
 		}		
@@ -111,9 +115,23 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	else {
 		DW.static.ForceUnlockObjective(ObjectiveID);
 	}
+
+	CelebrateSync(Sender, GetLocalization(DW), GetHUDIcon(DW));
 }
 
-static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+static function string GetLocalization(optional Object SyncClass) {
+	local class<Hat_SnatcherContract> ContractClass;
+
+	ContractClass = class<Hat_SnatcherContract>(SyncClass);
+
+	if(ContractClass != None) {
+		return ContractClass.static.GetLocalizedTitle();
+	}
+
+	return Super.GetLocalization(SyncClass);	
+}
+
+static function Surface GetHUDIcon(optional Object SyncClass) {
 	local class<Hat_SnatcherContract> ContractClass;
 
 	ContractClass = class<Hat_SnatcherContract>(SyncClass);
@@ -147,7 +165,7 @@ function UpdateActiveDWs()
 
 				DeathWishBits.AddItem(NewDWBit);
 
-				Print("OPSS_NEWDEATHWISHBIT => " @ `ShowVar(self) @ `ShowVar(NewDWBit.Contract) @ `ShowVar(NewDWBit.ObjectiveID) @ `ShowVar(NewDWBit.ObjectiveProgress));
+				Print("OPSS_NEWDEATHWISHBIT =>" @ `ShowVar(self) @ `ShowVar(NewDWBit.Contract) @ `ShowVar(NewDWBit.ObjectiveID) @ `ShowVar(NewDWBit.ObjectiveProgress));
 			}
 		}
 	}

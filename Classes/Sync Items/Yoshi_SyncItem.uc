@@ -4,6 +4,7 @@ class Yoshi_SyncItem extends Object
 	abstract;
 
 const HAT_PACKAGE_NAME = "hatintimegamecontent";
+const OPSS_LOCALIZATION_FILENAME = "opss";
 
 var Yoshi_OnlinePartySuperSync_GameMod GameMod;
 var const MaterialInterface SyncMaterial;
@@ -78,9 +79,16 @@ static function Name GetCommandChannel() {
 	return class'YoshiPrivate_OnlinePartySuperSync_Commands'.const.OPSSItem;
 }
 
+//This function should be overridden by child classes to determine how to grab Localization for various sync types.
+static function string GetLocalization(optional Object SyncClass) {
+	Print("OPSS_ERR_LOCALIZE => GetLocalization: Failed to grab Localized Name! " @ `ShowVar(SyncClass));
+
+	return "NULL";
+}
+
 //This function should be overridden by child classes to determine the HUD Icons for various sync types.
-static function Surface GetHUDIcon(optional class<Object> SyncClass) {
-	Print("OPSS_ERR_HUDICON GetHUDIcon: Failed to grab Icon! " @ `ShowVar(SyncClass));
+static function Surface GetHUDIcon(optional Object SyncClass) {
+	Print("OPSS_ERR_HUDICON => GetHUDIcon: Failed to grab Icon! " @ `ShowVar(SyncClass));
 
 	return Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_unknown';
 }

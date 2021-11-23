@@ -7,7 +7,7 @@ function OnCollectedCollectible(Object InCollectible) {
 }
 
 //This isn't even used here but hey why not!
-static function Surface GetHUDIcon(optional class<Object> SyncClass) {
+static function Surface GetHUDIcon(optional Object SyncClass) {
 	return Texture2D'HatInTime_Hud.Textures.EnergyBit';
 }
 
