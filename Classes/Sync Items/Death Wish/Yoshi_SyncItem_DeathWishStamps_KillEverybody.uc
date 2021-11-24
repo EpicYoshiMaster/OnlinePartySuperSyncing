@@ -1,0 +1,1 @@
+class Yoshi_SyncItem_DeathWishStamps_KillEverybody extends Yoshi_SyncItem_DeathWishStamps;

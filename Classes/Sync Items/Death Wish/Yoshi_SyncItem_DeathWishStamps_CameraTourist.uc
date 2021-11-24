@@ -5,12 +5,6 @@ const PICTURE_ENEMIES = 0;
 const PICTURE_THREE = 1;
 const PICTURE_BOSSES = 2;
 
-//Main Objective: Picture of 8 enemies
-//Bonus 1: 3 enemies at once (this one can be instant)
-//Bonus 2: All the bosses
-
-//Build an actor array to listen for new level bits to check
-
 var array<string> EnemyBits;
 var array<string> BossBits;
 
@@ -41,46 +35,30 @@ function OnPostInitGame() {
 	Print("OPSS_CAMERATOURIST => " @ `ShowVar(EnemyBits.length) @ `ShowVar(BossBits.length));
 }
 
-function Update(float delta) {
-	local int i;
-	local int NewProgress;
+function OnObjectiveCompleted(int i) {
 	local string SyncString;
-	
-	if(DeathWishBits.length <= 0) {
-		UpdateActiveDWs();
-	}
+	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
 
-	for(i = 0; i < DeathWishBits.length; i++) {
+	//Check for enemy pictures
+	SyncString $= "|" $ CheckForNewBits(DeathWishBits[i].ObjectiveID);
 
-		NewProgress = DeathWishBits[i].Contract.static.GetObjectiveProgress(DeathWishBits[i].ObjectiveID);
+	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
 
-		if(DeathWishBits[i].Contract.static.IsObjectiveCompleted(DeathWishBits[i].ObjectiveID)) {
+	Sync(SyncString);
+}
 
-			SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
+function OnObjectiveNewProgress(int i, int NewProgress) {
+	local string SyncString;
+	DeathWishBits[i].ObjectiveProgress = NewProgress;
 
-			//Check for enemy pictures
-			SyncString $= "|" $ CheckForNewBits(DeathWishBits[i].ObjectiveID);
+	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID $ "+" $ NewProgress;
 
-			Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
+	//Check for enemy pictures
+	SyncString $= "|" $ CheckForNewBits(DeathWishBits[i].ObjectiveID);
 
-			Sync(SyncString);
+	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
 
-			DeathWishBits.Remove(i, 1);
-			i--;
-		}
-		else if(DeathWishBits[i].ObjectiveProgress > -1 && NewProgress > DeathWishBits[i].ObjectiveProgress) {
-			DeathWishBits[i].ObjectiveProgress = NewProgress;
-
-			SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID $ "+" $ NewProgress;
-
-			//Check for enemy pictures
-			SyncString $= "|" $ CheckForNewBits(DeathWishBits[i].ObjectiveID);
-
-			Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
-
-			Sync(SyncString);
-		}		
-	}
+	Sync(SyncString);
 }
 
 function string CheckForNewBits(int ObjectiveID) {

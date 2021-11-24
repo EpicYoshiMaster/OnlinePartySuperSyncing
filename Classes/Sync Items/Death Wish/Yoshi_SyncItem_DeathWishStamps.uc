@@ -8,7 +8,6 @@ var array< class<Hat_SnatcherContract_DeathWish> > BlacklistedDeathWishes;
 
 //TODO:
 //Need Extra Level Bits
-//Camera Tourist
 //Kill Everybody
 //A Presses
 //Fix the coins
@@ -57,7 +56,6 @@ function bool IsBlacklisted(class<Hat_SnatcherContract_DeathWish> DW) {
 function Update(float delta) {
 	local int i;
 	local int NewProgress;
-	local string SyncString;
 	
 	if(DeathWishBits.length <= 0) {
 		UpdateActiveDWs();
@@ -68,26 +66,35 @@ function Update(float delta) {
 		NewProgress = DeathWishBits[i].Contract.static.GetObjectiveProgress(DeathWishBits[i].ObjectiveID);
 
 		if(DeathWishBits[i].Contract.static.IsObjectiveCompleted(DeathWishBits[i].ObjectiveID)) {
-			//Print("OPSS_DEATHWISH =>" @ `ShowVar(DeathWishBits[i].Contract) @ `ShowVar(DeathWishBits[i].ObjectiveID));
-			SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
-
-			Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
-
-			Sync(SyncString);
+			OnObjectiveCompleted(i);
 
 			DeathWishBits.Remove(i, 1);
 			i--;
 		}
 		else if(DeathWishBits[i].ObjectiveProgress > -1 && NewProgress > DeathWishBits[i].ObjectiveProgress) {
-			DeathWishBits[i].ObjectiveProgress = NewProgress;
-
-			SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID $ "+" $ NewProgress;
-
-			Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
-
-			Sync(SyncString);
+			OnObjectiveNewProgress(i, NewProgress);
 		}		
 	}
+}
+
+function OnObjectiveCompleted(int i) {
+	local string SyncString;
+	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
+
+	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
+
+	Sync(SyncString);
+}
+
+function OnObjectiveNewProgress(int i, int NewProgress) {
+	local string SyncString;
+	DeathWishBits[i].ObjectiveProgress = NewProgress;
+
+	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID $ "+" $ NewProgress;
+
+	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
+
+	Sync(SyncString);
 }
 
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
