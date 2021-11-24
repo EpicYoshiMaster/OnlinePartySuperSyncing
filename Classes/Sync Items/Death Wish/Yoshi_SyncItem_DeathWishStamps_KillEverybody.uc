@@ -19,7 +19,6 @@ function OnObjectiveCompleted(int i) {
 	local string SyncString;
 	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
 
-	//Check for enemy pictures
 	SyncString $= "|";
 
 	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
@@ -49,7 +48,6 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	local int ObjectiveID, ObjectiveProgress;
 	local bool IsNewKill;
 
-	//Step 1: Check for the extra enemy attachment
 	arr = SplitString(SyncString, "|");
 
 	if(arr.length < 2) return;

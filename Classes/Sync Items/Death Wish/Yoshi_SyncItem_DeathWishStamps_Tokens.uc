@@ -1,19 +1,20 @@
-class Yoshi_SyncItem_DeathWishStamps_NoAPresses extends Yoshi_SyncItem_DeathWishStamps;
+class Yoshi_SyncItem_DeathWishStamps_Tokens extends Yoshi_SyncItem_DeathWishStamps;
 
-const TimePieceIDPrefix = "_TimePieceCollected_";
+//TODO: Tokens likely won't sync properly due to the same actor level bit being used multiple times
 
-var string CollectedIdentifier;
+var string TokenLevelBit;
 
-//If we grab a time piece and the stamp ticks up, this identifier HAS to be the one for the stamp unless they're dumb and cheating
-//The identifier will happen first and the stamp will be checked on the next frame
-function OnTimePieceCollected(string Identifier) {
-	CollectedIdentifier = Identifier;
+function OnCollectedCollectible(Object InCollectible) {
+	if (InCollectible.IsA('Hat_Collectible_DeathWishLevelToken'))
+	{
+		TokenLevelBit = Hat_Collectible_DeathWishLevelToken(InCollectible).OnCollectLevelBit.Id;
+	}
 }
 
 function OnObjectiveCompleted(int i) {
 	local string SyncString;
-
 	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
+
 	SyncString $= "|";
 
 	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
@@ -21,13 +22,13 @@ function OnObjectiveCompleted(int i) {
 	Sync(SyncString);
 }
 
-//Only the 4 time pieces bonus will use this
 function OnObjectiveNewProgress(int i, int NewProgress) {
 	local string SyncString;
 	DeathWishBits[i].ObjectiveProgress = NewProgress;
 
 	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID $ "+" $ NewProgress;
-	SyncString $= "|" $ CollectedIdentifier;
+
+	SyncString $= "|" $ TokenLevelBit $ "+" $ `GameManager.GetCurrentMapFilename();
 
 	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
 
@@ -38,7 +39,6 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	local array<string> arr, MainArr, BitArr;
 	local class<Hat_SnatcherContract_DeathWish> DW;
 	local int ObjectiveID, ObjectiveProgress;
-	local bool IsNewIdentifier;
 
 	arr = SplitString(SyncString, "|");
 
@@ -56,16 +56,19 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 
 	//This is a sync with objective progress
 	if(arr.length >= 3) {
-		if(BitArr.length <= 0) return;
+		if(BitArr.length < 2) return;
+
 		ObjectiveProgress = DW.static.GetObjectiveProgress(ObjectiveID);
 
-		IsNewIdentifier = class'Hat_SnatcherContract_DeathWish_NoAPresses'.static.CheckAndSetUnobtainedTimePiece(BitArr[0]);
+		if(class'Hat_SaveBitHelper'.static.HasLevelBit(BitArr[0], 1, BitArr[1])) return;
 
-		if(!IsNewIdentifier) return;
+		class'Hat_SaveBitHelper'.static.AddLevelBit(BitArr[0], 1, BitArr[1]);
 
 		ObjectiveProgress += 1;
 
 		DW.static.SetObjectiveValue(ObjectiveID, ObjectiveProgress);
+
+		//TODO: Fix the Token in-world
 	}
 	//This is a finished stamp sync
 	else {
@@ -79,5 +82,5 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 
 defaultproperties
 {
-	WhitelistedDeathWishes.Add(class'Hat_SnatcherContract_DeathWish_NoAPresses');
+	WhitelistedDeathWishes.Add(class'Hat_SnatcherContract_DeathWish_Tokens_MafiaTown');
 }

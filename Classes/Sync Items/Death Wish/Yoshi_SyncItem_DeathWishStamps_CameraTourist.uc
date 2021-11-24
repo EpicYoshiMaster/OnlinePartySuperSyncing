@@ -96,7 +96,6 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	local class<Hat_SnatcherContract_DeathWish> DW;
 	local int ObjectiveID, OriginalObjectiveProgress, ObjectiveProgress, i;
 
-	//Step 1: Check for the extra enemy attachment
 	arr = SplitString(SyncString, "|");
 
 	if(arr.length < 2) return;
@@ -131,8 +130,6 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	}
 	//This is a finished stamp sync
 	else {
-		//We allow this case to be a failsafe if enemies ever desync, everyone still gets the objective as completed
-		//No point worrying about enemy tallys
 		DW.static.ForceUnlockObjective(ObjectiveID);
 	}
 
