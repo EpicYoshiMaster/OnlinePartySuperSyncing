@@ -60,6 +60,8 @@ event OnModLoaded() {
 	local int i;
 	local array< class<Yoshi_SyncItem> > AllSyncClasses;
 
+	if(`GameManager.GetCurrentMapFilename() ~= `GameManager.TitlescreenMapName) return;
+
 	Syncs.length = 0;
 	AllSyncClasses = GetAllSyncClasses();
 

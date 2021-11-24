@@ -116,6 +116,8 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 		DW.static.ForceUnlockObjective(ObjectiveID);
 	}
 
+	FixDeathWishBits();
+
 	CelebrateSync(Sender, GetLocalization(DW), GetHUDIcon(DW));
 }
 
@@ -143,6 +145,23 @@ static function Surface GetHUDIcon(optional Object SyncClass) {
 	return Super.GetHUDIcon(SyncClass);
 }
 
+function FixDeathWishBits() {
+	local int i;
+	local int NewProgress;
+
+	for(i = 0; i < DeathWishBits.length; i++) {
+		NewProgress = DeathWishBits[i].Contract.static.GetObjectiveProgress(DeathWishBits[i].ObjectiveID);
+
+		if(DeathWishBits[i].Contract.static.IsObjectiveCompleted(DeathWishBits[i].ObjectiveID)) {
+			DeathWishBits.Remove(i, 1);
+			i--;
+		}
+		else if(DeathWishBits[i].ObjectiveProgress > -1 && NewProgress > DeathWishBits[i].ObjectiveProgress) {
+			DeathWishBits[i].ObjectiveProgress = NewProgress;
+		}		
+	}
+}
+
 function UpdateActiveDWs()
 {
 	local int i, j;
@@ -161,6 +180,9 @@ function UpdateActiveDWs()
 
 				if(DW.default.Objectives[j].MaxTriggerCount > 1 && !DW.default.Objectives[j].ResetProgressOnLevelEntry) {
 					NewDWBit.ObjectiveProgress = DW.static.GetObjectiveProgress(j);
+				}
+				else {
+					NewDWBit.ObjectiveProgress = -1;
 				}
 
 				DeathWishBits.AddItem(NewDWBit);
