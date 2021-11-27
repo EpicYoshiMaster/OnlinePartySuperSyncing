@@ -2,7 +2,6 @@
 class Yoshi_HUDElement_OnlineSync extends Hat_HUDElement;
 
 const MAX_ROWS = 5;
-const MAX_FADE_TIME = 0.5;
 
 struct SyncRow {
 	var Surface Icon;
@@ -37,6 +36,8 @@ var float RowMatScale;
 var float rowYStep;
 var float texOffset;
 
+var float MaxFadeTime;
+
 function PushSync(Hat_GhostPartyPlayerStateBase state, string LocalizedItemName, Surface Icon) {
 	local SyncRow NewSync;
 
@@ -48,26 +49,24 @@ function PushSync(Hat_GhostPartyPlayerStateBase state, string LocalizedItemName,
 
 	SyncRows.AddItem(NewSync);
 
-	while (SyncRows.length > MAX_ROWS) {
-		if(!PopSync()) {
-			break;
-		}
-	}
+	CheckPopNext();
 }
 
-function bool PopSync() {
-	local int i;
-	if(SyncRows.length > 0) {
+function CheckPopNext() {
+	local int AdjustedLength, i;
 
-		for(i = 0; i < SyncRows.length; i++) {
-			if(!SyncRows[i].IsFadingOut) {
-				SyncRows[i].IsFadingOut = true;
-				return true;
-			}
+	AdjustedLength = SyncRows.length;
+
+	for(i = 0; i < SyncRows.length; i++) {
+		if(AdjustedLength <= MAX_ROWS) return;
+		if(SyncRows[i].IsFadingOut) {
+			AdjustedLength--;
+		}
+		else {
+			SyncRows[i].IsFadingOut = true;
+			return;
 		}
 	}
-
-	return false;
 }
 
 function bool Tick(HUD H, float delta)
@@ -79,13 +78,14 @@ function bool Tick(HUD H, float delta)
 		if(SyncRows[i].IsFadingIn || SyncRows[i].IsFadingOut) {
 			SyncRows[i].FadeTime += delta;
 
-			if(SyncRows[i].FadeTime >= MAX_FADE_TIME) {
+			if(SyncRows[i].FadeTime >= MaxFadeTime) {
 				if(SyncRows[i].IsFadingOut) {
 					SyncRows.Remove(i, 1);
 					i--;
 				}
 				else {
 					SyncRows[i].IsFadingIn = false;
+					SyncRows[i].FadeTime = 0;
 				}
 			}
 		}
@@ -121,10 +121,10 @@ function bool Render(HUD H)
 
 		//Set the Draw Color Alpha
 		if(SyncRows[i].IsFadingIn) {
-			DrawColor.A = Lerp(0.0, 255.0, (SyncRows[i].FadeTime / MAX_FADE_TIME));
+			DrawColor.A = Lerp(0.0, 255.0, (SyncRows[i].FadeTime / MaxFadeTime));
 		}
 		else if(SyncRows[i].IsFadingOut) {
-			DrawColor.A = Lerp(255.0, 0.0, (SyncRows[i].FadeTime / MAX_FADE_TIME));
+			DrawColor.A = Lerp(255.0, 0.0, (SyncRows[i].FadeTime / MaxFadeTime));
 		}
 		else {
 			DrawColor.A = default.DrawColor.A;
@@ -170,9 +170,11 @@ defaultproperties
 	texOffset=1
 	rowYStep=2;
 
-	SyncRows(0)=(Icon=Texture2D'HatInTime_Hud_ItemIcons.Misc.token_icon',ItemName="Roulette Token",MapName="Mafia Town",PlayerName="xXMafia_BossXDXx")
-	SyncRows(1)=(Icon=Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_badge_sprint',ItemName="No Bonk Badge",MapName="Subcon Forest",PlayerName="#1 Snatcher Fan")
-	SyncRows(2)=(Icon=Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece',ItemName="Yellow Overpass Manhole",MapName="Nyakuza Metro",PlayerName="Timmy")
-	SyncRows(3)=(Icon=Texture2D'HatInTime_Hud_ItemIcons.yarn.yarn_ui_timestop',ItemName="Time Stop Yarn",MapName="Alpine Skyline",PlayerName="The Twilight Bell is This Way")
-	SyncRows(4)=(Icon=Texture2D'HatInTime_Hud_ItemIcons2.decoration_cake_a',ItemName="Relic",MapName="The Arctic Cruise",PlayerName="Egg")
+	MaxFadeTime=0.5;
+
+	//SyncRows(0)=(Icon=Texture2D'HatInTime_Hud_ItemIcons.Misc.token_icon',ItemName="Roulette Token",MapName="Mafia Town",PlayerName="xXMafia_BossXDXx")
+	//SyncRows(1)=(Icon=Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_badge_sprint',ItemName="No Bonk Badge",MapName="Subcon Forest",PlayerName="#1 Snatcher Fan")
+	//SyncRows(2)=(Icon=Texture2D'HatInTime_Hud.Textures.Collectibles.collectible_timepiece',ItemName="Yellow Overpass Manhole",MapName="Nyakuza Metro",PlayerName="Timmy")
+	//SyncRows(3)=(Icon=Texture2D'HatInTime_Hud_ItemIcons.yarn.yarn_ui_timestop',ItemName="Time Stop Yarn",MapName="Alpine Skyline",PlayerName="The Twilight Bell is This Way")
+	//SyncRows(4)=(Icon=Texture2D'HatInTime_Hud_ItemIcons2.decoration_cake_a',ItemName="Relic",MapName="The Arctic Cruise",PlayerName="Egg")
 }

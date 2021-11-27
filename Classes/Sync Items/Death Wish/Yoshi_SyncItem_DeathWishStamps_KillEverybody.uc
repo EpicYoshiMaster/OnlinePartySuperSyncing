@@ -21,7 +21,7 @@ function OnObjectiveCompleted(int i) {
 
 	SyncString $= "|";
 
-	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
+	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
 
 	Sync(SyncString);
 }
@@ -37,7 +37,7 @@ function OnObjectiveNewProgress(int i, int NewProgress) {
 		SyncString $= LastKilledEnemy;
 	}
 
-	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
+	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
 
 	Sync(SyncString);
 }

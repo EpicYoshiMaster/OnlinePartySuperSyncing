@@ -42,7 +42,7 @@ function OnObjectiveCompleted(int i) {
 	//Check for enemy pictures
 	SyncString $= "|" $ CheckForNewBits(DeathWishBits[i].ObjectiveID);
 
-	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
+	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
 
 	Sync(SyncString);
 }
@@ -56,7 +56,7 @@ function OnObjectiveNewProgress(int i, int NewProgress) {
 	//Check for enemy pictures
 	SyncString $= "|" $ CheckForNewBits(DeathWishBits[i].ObjectiveID);
 
-	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(DeathWishBits[i].Contract) @ "Name: " @ GetLocalization(DeathWishBits[i].Contract) @ "Icon: " $ GetHUDIcon(DeathWishBits[i].Contract));
+	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
 
 	Sync(SyncString);
 }

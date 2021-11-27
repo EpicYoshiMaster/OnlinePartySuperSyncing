@@ -46,7 +46,7 @@ function bool IsBlacklisted(class<Object> CheckClass) {
 function OnValidCollectible(class<Object> CheckClass) {
 	local string collectibleString;
 
-	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(CheckClass) @ "Name: " @ GetLocalization(CheckClass) @ "Icon: " $ GetHUDIcon(CheckClass));
+	CelebrateSyncLocal(GetLocalization(CheckClass), GetHUDIcon(CheckClass));
 
 	//Send the class
 	collectibleString = string(CheckClass);

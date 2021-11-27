@@ -24,7 +24,7 @@ function Update(float delta) {
 		Sync(ALPINE_INTRO_BIT_NAME);
 		AlreadyHasBit = true;
 
-		Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ "Name: " @ GetLocalization() @ "Icon: " $ GetHUDIcon());
+		CelebrateSyncLocal(GetLocalization(), GetHUDIcon());
 	}
 }
 

@@ -18,7 +18,7 @@ function OnTimePieceCollected(string Identifier) {
 
 	ActInfo = FindChapterActInfoForIdentifier(Identifier);
 
-	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(ActInfo) @ "Name: " @ GetLocalization(ActInfo) @ "Icon: " $ GetHUDIcon());
+	CelebrateSyncLocal(GetLocalization(ActInfo), GetHUDIcon(ActInfo));
 
     SyncString = Identifier $ "+" $ ActInfo.IsBonus;
 

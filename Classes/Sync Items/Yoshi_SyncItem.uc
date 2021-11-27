@@ -5,6 +5,8 @@ class Yoshi_SyncItem extends Object
 
 const HAT_PACKAGE_NAME = "hatintimegamecontent";
 const OPSS_LOCALIZATION_FILENAME = "opss";
+const DEBUG_CELEBRATEHUD_LOCAL = true;
+const DEBUG_SPAWNPARTICLE_LOCAL = true;
 
 var Yoshi_OnlinePartySuperSync_GameMod GameMod;
 var const MaterialInterface SyncMaterial;
@@ -46,6 +48,21 @@ function bool IsValidPackage(Object obj) {
 //TODO: SCFOS != Mafia Town
 function bool IsInSameWorld(string MapName) {
 	return `GameManager.GetCurrentMapFilename() ~= MapName;
+}
+
+function CelebrateSyncLocal(string LocalizedItemName, Surface Icon) {
+	local Hat_Player ply;
+
+	Print("OPSS_LOCALIZE => " @ self.class @ "(Name: " $ LocalizedItemName $ ", Icon: " $ Icon $ ")");
+
+	if(DEBUG_CELEBRATEHUD_LOCAL && GameMod != None) {
+		ply = Hat_Player(class'Engine'.static.GetEngine().GamePlayers[0].Actor.Pawn);
+		GameMod.OnCelebrateSync(class'Hat_GhostPartyPlayerStateBase'.static.GetLocalPlayerState(ply.GetPlayerIndex()), LocalizedItemName, Icon);
+	}
+
+	if(DEBUG_SPAWNPARTICLE_LOCAL && Texture(Icon) != None) {
+		SpawnParticle(Texture(Icon));
+	}
 }
 
 function CelebrateSync(Hat_GhostPartyPlayerStateBase Sender, string LocalizedItemName, Surface Icon) {

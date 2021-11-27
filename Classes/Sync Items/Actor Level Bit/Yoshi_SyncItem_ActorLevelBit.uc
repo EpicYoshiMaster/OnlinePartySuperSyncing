@@ -59,7 +59,7 @@ function Update(float delta) {
 			Sync(SyncString);
 
 			if(ShouldCelebrateSync) {
-				Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ "Name: " @ GetLocalization(MapActors[i].class) @ "Icon: " $ GetHUDIcon(MapActors[i].class));
+				CelebrateSyncLocal(GetLocalization(MapActors[i].class), GetHUDIcon(MapActors[i].class));
 			}
 			
 			MapActors.Remove(i, 1);

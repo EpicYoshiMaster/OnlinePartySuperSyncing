@@ -39,7 +39,8 @@ function OnValidCollectible(Object InCollectible) {
 	//Send the class, then the level bit, then the map
 	collectibleString = InCollectible.class $ "+" $ GetLevelBitId(InCollectible) $ "+" $ GetLevelBitValue(InCollectible) $ "+" $ `GameManager.GetCurrentMapFilename();
 
-	Print("OPSS_LOCALIZE =>" @ `ShowVar(self.class) @ `ShowVar(InCollectible) @ "Name:" @ GetLocalization(InCollectible.class) @ "Icon: " $ GetHUDIcon(InCollectible.class));
+	CelebrateSyncLocal(GetLocalization(InCollectible.class), GetHUDIcon(InCollectible.class));
+	
 	Sync(collectibleString);
 }
 
