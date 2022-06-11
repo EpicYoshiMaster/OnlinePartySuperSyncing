@@ -20,11 +20,11 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 	if(RelicClass != None) {
 		Hat_PlayerController(ply.Controller).GetLoadout().AddCollectible(RelicClass);
 
-		CelebrateSync(Sender, "RELIC NAME",Texture2D(RelicClass.default.HUDIcon));
+		CelebrateSync(Sender, GetLocalization(RelicClass),GetHUDIcon(RelicClass));
 	}
 	else {
 		Hat_PlayerController(ply.Controller).GetLoadout().AddCollectible(class'Hat_Collectible_RouletteToken');
-		CelebrateSync(Sender, "RELIC NAME",Texture2D(RelicClass.default.HUDIcon));
+		CelebrateSync(Sender, GetLocalization(class'Hat_Collectible_RouletteToken'),GetHUDIcon(class'Hat_Collectible_RouletteToken'));
 	}
     
 	AddLevelBit(arr[1], int(arr[2]), arr[3]);
