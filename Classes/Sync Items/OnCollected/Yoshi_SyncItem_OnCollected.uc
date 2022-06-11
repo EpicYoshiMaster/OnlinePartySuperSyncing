@@ -85,7 +85,17 @@ static function string GetLocalization(optional Object SyncClass) {
 }
 
 static function Surface GetHUDIcon(optional Object SyncClass) {
+	local class<Hat_Collectible_Sticker> StickerClass;
 	local class<Hat_Collectible_Important> ImportantClass;
+
+	StickerClass = class<Hat_Collectible_Sticker>(SyncClass);
+
+	if(StickerClass != None) {
+
+		if(StickerClass.default.StickerTexture != None) {
+			return StickerClass.default.StickerTexture;
+		}
+	}
 
 	ImportantClass = class<Hat_Collectible_Important>(SyncClass);
 
