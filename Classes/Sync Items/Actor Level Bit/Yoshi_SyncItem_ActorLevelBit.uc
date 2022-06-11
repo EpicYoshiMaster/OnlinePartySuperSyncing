@@ -55,7 +55,7 @@ function Update(float delta) {
 
 		if(class'Hat_SaveBitHelper'.static.HasLevelBit(BitID, 1)) {
 
-			SyncString = BitID $ "+" $ `GameManager.GetCurrentMapFilename();
+			SyncString = BitID $ "+" $ MapActors[i].class $ "+" $ `GameManager.GetCurrentMapFilename();
 			Sync(SyncString);
 
 			if(ShouldCelebrateSync) {
@@ -92,20 +92,37 @@ static function string GetLocalization(optional Object SyncClass) {
 
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	local array<string> arr;
+	local class<Actor> MapActorClass;
 
 	arr = SplitString(SyncString, "+");
 
 	if(arr.length < 3) return;
-	if(class'Hat_SaveBitHelper'.static.HasLevelBit(arr[0], 1, arr[1])) return;
+	if(class'Hat_SaveBitHelper'.static.HasLevelBit(arr[0], 1, arr[2])) return;
 
-	class'Hat_SaveBitHelper'.static.AddLevelBit(arr[0], 1, arr[1]);
+	class'Hat_SaveBitHelper'.static.AddLevelBit(arr[0], 1, arr[2]);
+
+	MapActorClass = class<Actor>(class'Hat_ClassHelper'.static.ClassFromName(arr[1]));
 	
-	if(`GameManager.GetCurrentMapFilename() ~= arr[1]) {
-		UpdateActors();
+	if(`GameManager.GetCurrentMapFilename() ~= arr[2]) {
+		FixActors();
 	}
 
 	if(ShouldCelebrateSync) {
-		CelebrateSync(Sender, GetLocalization(), GetHUDIcon());
+		CelebrateSync(Sender, GetLocalization(MapActorClass), GetHUDIcon(MapActorClass));
+	}
+}
+
+function FixActors() {
+	local int i;
+	local string BitID;
+
+	for(i = 0; i < MapActors.length; i++) {
+		BitID = class'Hat_SaveBitHelper'.static.GetBitId(MapActors[i]);
+
+		if(class'Hat_SaveBitHelper'.static.HasLevelBit(BitID, 1)) {
+			MapActors.Remove(i, 1);
+			i--;
+		}
 	}
 }
 
