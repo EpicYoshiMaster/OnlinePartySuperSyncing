@@ -10,71 +10,52 @@ function OnTimePieceCollected(string Identifier) {
 	CollectedIdentifier = Identifier;
 }
 
-function OnObjectiveCompleted(int i) {
+function string GetObjectiveString(const DeathWishBit DWBit) {
 	local string SyncString;
 
-	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
-	SyncString $= "|";
+	SyncString = Super.GetObjectiveString(DWBit);
 
-	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
-
-	Sync(SyncString);
-}
-
-//Only the 4 time pieces bonus will use this
-function OnObjectiveNewProgress(int i, int NewProgress) {
-	local string SyncString;
-	DeathWishBits[i].ObjectiveProgress = NewProgress;
-
-	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID $ "+" $ NewProgress;
 	SyncString $= "|" $ CollectedIdentifier;
-
-	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
-
-	Sync(SyncString);
+	return SyncString;
 }
 
-function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
-	local array<string> arr, MainArr, BitArr;
-	local class<Hat_SnatcherContract_DeathWish> DW;
-	local int ObjectiveID, ObjectiveProgress;
-	local bool IsNewIdentifier;
+//Returns TRUE if we should continue syncing the objective, returns FALSE otherwise
+function bool ShouldContinueObjectiveSync(const out DeathWishBit DWBit, const out array<string> ExtraArr) {
+	if(DWBit.Contract.static.IsContractPerfected() || DWBit.Contract.static.IsObjectiveCompleted(DWBit.ObjectiveID)) return false;
+	if(DWBit.ObjectiveProgress >= 0 && HasTimePiece(ExtraArr[0])) return false;
 
-	arr = SplitString(SyncString, "|");
+	return true;
+}
 
-	if(arr.length < 2) return;
-
-	MainArr = SplitString(arr[0], "+");
-	BitArr = SplitString(arr[1], "+");
-
-	if(MainArr.length < 2) return;
-
-	DW = class<Hat_SnatcherContract_DeathWish>(class'Hat_ClassHelper'.static.ClassFromName(MainArr[0]));
-	ObjectiveID = int(MainArr[1]);
-
-    if(DW.static.IsContractPerfected() || DW.static.IsObjectiveCompleted(ObjectiveID)) return;
-
-	//This is a sync with objective progress
-	if(arr.length >= 3) {
-		if(BitArr.length <= 0) return;
-		ObjectiveProgress = DW.static.GetObjectiveProgress(ObjectiveID);
-
-		IsNewIdentifier = class'Hat_SnatcherContract_DeathWish_NoAPresses'.static.CheckAndSetUnobtainedTimePiece(BitArr[0]);
-
-		if(!IsNewIdentifier) return;
-
-		ObjectiveProgress += 1;
-
-		DW.static.SetObjectiveValue(ObjectiveID, ObjectiveProgress);
+//Should handle unlocking objectives
+//Returns TRUE if we should celebrate this sync, returns FALSE otherwise
+function bool HandleObjectiveSync(const out DeathWishBit DWBit, const out array<string> ExtraArr) {
+	//This is a full clear
+	if(DWBit.ObjectiveProgress == -1) {
+		DWBit.Contract.static.ForceUnlockObjective(DWBit.ObjectiveID);
 	}
-	//This is a finished stamp sync
+	//This is a progress update
 	else {
-		DW.static.ForceUnlockObjective(ObjectiveID);
+		SetUnobtainedTimePiece(ExtraArr[0]);
+		DWBit.Contract.static.SetObjectiveValue(DWBit.ObjectiveID, DWBit.Contract.static.GetObjectiveProgress(DWBit.ObjectiveID) + 1);
 	}
 
-	FixDeathWishBits();
+	return true;
+}
 
-	CelebrateSync(Sender, GetLocalization(DW), GetHUDIcon(DW));
+static function bool HasTimePiece(string Identifier) {
+	local string bitid;
+
+	bitid = class'Hat_SnatcherContract_DeathWish_NoAPresses'.static.GetObjectiveBitID() $ TimePieceIDPrefix $ Identifier;
+	return class'Hat_SaveBitHelper'.static.HasLevelBit(bitid, 1, class'Hat_SnatcherContract_DeathWish_NoAPresses'.default.ObjectiveMapName);
+}
+
+static function SetUnobtainedTimePiece(string Identifier) {
+	local string bitid;
+	
+	bitid = class'Hat_SnatcherContract_DeathWish_NoAPresses'.static.GetObjectiveBitID() $ TimePieceIDPrefix $ Identifier;
+
+	class'Hat_SaveBitHelper'.static.SetLevelBits(bitid, 1, class'Hat_SnatcherContract_DeathWish_NoAPresses'.default.ObjectiveMapName);
 }
 
 defaultproperties

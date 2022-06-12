@@ -15,90 +15,54 @@ function OnPawnCombatDeath(Pawn PawnCombat, Controller Killer, class<Object> Dam
 	if (PawnCombat.IsA('Hat_Enemy_AlleyRat')) LastKilledEnemy = 'Hat_Enemy_Rat';
 }
 
-function OnObjectiveCompleted(int i) {
+function string GetObjectiveString(const DeathWishBit DWBit) {
 	local string SyncString;
-	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
 
-	SyncString $= "|";
+	SyncString = Super.GetObjectiveString(DWBit);
 
-	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
-
-	Sync(SyncString);
-}
-
-function OnObjectiveNewProgress(int i, int NewProgress) {
-	local string SyncString;
-	DeathWishBits[i].ObjectiveProgress = NewProgress;
-
-	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID $ "+" $ NewProgress;
-
-	SyncString $= "|";
-	if(DeathWishBits[i].ObjectiveID == KILL_EVERYBODY) {
-		SyncString $= LastKilledEnemy;
+	if(DWBit.ObjectiveID == KILL_EVERYBODY) {
+		SyncString $= "|" $ LastKilledEnemy;
 	}
 
-	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
-
-	Sync(SyncString);
+	return SyncString;
 }
 
-function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
-	local array<string> arr, MainArr, BitArr;
-	local class<Hat_SnatcherContract_DeathWish> DW;
-	local int ObjectiveID, ObjectiveProgress;
-	local bool IsNewKill;
-
-	arr = SplitString(SyncString, "|");
-
-	if(arr.length < 2) return;
-
-	MainArr = SplitString(arr[0], "+");
-	BitArr = SplitString(arr[1], "+");
-
-	if(MainArr.length < 2) return;
-
-	DW = class<Hat_SnatcherContract_DeathWish>(class'Hat_ClassHelper'.static.ClassFromName(MainArr[0]));
-	ObjectiveID = int(MainArr[1]);
-
-    if(DW.static.IsContractPerfected() || DW.static.IsObjectiveCompleted(ObjectiveID)) return;
-
-	//This is a sync with objective progress
-	if(arr.length >= 3) {
-		if(ObjectiveID != KILL_EVERYBODY) {
-			ObjectiveProgress = int(arr[2]);
-			if(DW.static.GetObjectiveProgress(ObjectiveID) >= ObjectiveProgress) return;
-
-			DW.static.SetObjectiveValue(ObjectiveID, ObjectiveProgress);
-		}
-		else {
-			if(BitArr.length <= 0) return;
-
-			ObjectiveProgress = DW.static.GetObjectiveProgress(ObjectiveID);
-
-			IsNewKill = TryListKill(Name(BitArr[0]));
-
-			if(!IsNewKill) return;
-
-			ObjectiveProgress += 1;
-
-			DW.static.SetObjectiveValue(ObjectiveID, ObjectiveProgress);
-		}
+//Returns TRUE if we should continue syncing the objective, returns FALSE otherwise
+function bool ShouldContinueObjectiveSync(const out DeathWishBit DWBit, const out array<string> ExtraArr) {
+	if(DWBit.ObjectiveID == KILL_EVERYBODY && ExtraArr.length > 0) {
+		return IsNewKill(Name(ExtraArr[0])); //Kill Everybody is the only objective that uses the extra array
 	}
-	//This is a finished stamp sync
-	else {
-		DW.static.ForceUnlockObjective(ObjectiveID);
 
-		if(ObjectiveID == KILL_EVERYBODY) {
+	return Super.ShouldContinueObjectiveSync(DWBit, ExtraArr);
+}
+
+//Should handle unlocking objectives
+//Returns TRUE if we should celebrate this sync, returns FALSE otherwise
+function bool HandleObjectiveSync(const out DeathWishBit DWBit, const out array<string> ExtraArr) {
+	//This is a full clear
+	if(DWBit.ObjectiveProgress == -1) {
+
+		DWBit.Contract.static.ForceUnlockObjective(DWBit.ObjectiveID);
+
+		if(DWBit.ObjectiveID == KILL_EVERYBODY) {
 			class'Hat_SnatcherContract_DeathWish_KillEverybody'.static.WipeKillEverybodyProgress();
 		}
 	}
+	//This is a progress update
+	else {
+		if(DWBit.ObjectiveID == KILL_EVERYBODY) {
+			AddNewKill(Name(ExtraArr[0])); //This is verified by the precondition function
+			DWBit.Contract.static.SetObjectiveValue(DWBit.ObjectiveID, DWBit.Contract.static.GetObjectiveProgress(DWBit.ObjectiveID) + 1);
+		}
+		else {
+			DWBit.Contract.static.SetObjectiveValue(DWBit.ObjectiveID, DWBit.ObjectiveProgress);
+		}
+	}
 
-	FixDeathWishBits();
-
-	CelebrateSync(Sender, GetLocalization(DW), GetHUDIcon(DW));
+	return true;
 }
 
-function bool TryListKill(Name n)
+function bool IsNewKill(Name n)
 {
 	local string LevelBitName;
 
@@ -107,8 +71,15 @@ function bool TryListKill(Name n)
 	if (class'Hat_SnatcherContract_DeathWish_KillEverybody'.default.Targets.Find(n) == INDEX_NONE || (n == 'Hat_Boss_Conductor' && n == 'Hat_Boss_DJGrooves')) return false;
 	if (class'Hat_SaveBitHelper'.static.HasLevelBit(LevelBitName, 1, `GameManager.HubMapName)) return false;
 
-	class'Hat_SaveBitHelper'.static.AddLevelBit(LevelBitName, 1, `GameManager.HubMapName);
 	return true;
+}
+
+function AddNewKill(Name n) {
+	local string LevelBitName;
+
+	LevelBitName = class'Hat_SnatcherContract_DeathWish_KillEverybody'.static.GetObjectiveBitID(KILL_EVERYBODY) $ "_Killed_" $ n;
+
+	class'Hat_SaveBitHelper'.static.AddLevelBit(LevelBitName, 1, `GameManager.HubMapName);
 }
 
 defaultproperties

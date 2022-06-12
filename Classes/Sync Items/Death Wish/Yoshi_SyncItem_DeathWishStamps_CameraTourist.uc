@@ -18,14 +18,20 @@ function OnPostInitGame() {
 		if(enemy != None) {
 
 			EnemyName = GetSnappedID(enemy, false);
+			BossName = GetSnappedID(enemy, true);
+
+			Print("OPSS_ENEMY_TEST => " $ `ShowVar(enemy) @ `ShowVar(EnemyName) @ `ShowVar(BossName));
+ 
 			LevelBitName = ObjectiveBitID $ "_" $ EnemyName;
 			if(EnemyName != "" && EnemyBits.Find(LevelBitName) == INDEX_NONE && class'Hat_SaveBitHelper'.static.GetLevelBits(LevelBitName, OBJECTIVE_MAP) == 0) {
+				Print("OPSS_ENEMY_ADD => " $ `ShowVar(enemy));
 				EnemyBits.AddItem(LevelBitName);
 			}
 
-			BossName = GetSnappedID(enemy, true);
+			
 			LevelBitName = ObjectiveBitID $ "_" $ BossName;
 			if(BossName != "" && BossBits.Find(LevelBitName) == INDEX_NONE && class'Hat_SaveBitHelper'.static.GetLevelBits(LevelBitName, OBJECTIVE_MAP) == 0) {
+				Print("OPSS_BOSS_ADD => " $ `ShowVar(enemy));
 				BossBits.AddItem(LevelBitName);
 			}
 
@@ -35,30 +41,12 @@ function OnPostInitGame() {
 	Print("OPSS_CAMERATOURIST => " @ `ShowVar(EnemyBits.length) @ `ShowVar(BossBits.length));
 }
 
-function OnObjectiveCompleted(int i) {
+function string GetObjectiveString(const DeathWishBit DWBit) {
 	local string SyncString;
-	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
 
-	//Check for enemy pictures
-	SyncString $= "|" $ CheckForNewBits(DeathWishBits[i].ObjectiveID);
+	SyncString = Super.GetObjectiveString(DWBit);
 
-	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
-
-	Sync(SyncString);
-}
-
-function OnObjectiveNewProgress(int i, int NewProgress) {
-	local string SyncString;
-	DeathWishBits[i].ObjectiveProgress = NewProgress;
-
-	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID $ "+" $ NewProgress;
-
-	//Check for enemy pictures
-	SyncString $= "|" $ CheckForNewBits(DeathWishBits[i].ObjectiveID);
-
-	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
-
-	Sync(SyncString);
+	return SyncString $ "|" $ CheckForNewBits(DWBit.ObjectiveID);
 }
 
 function string CheckForNewBits(int ObjectiveID) {
@@ -91,51 +79,51 @@ function string CheckForNewBits(int ObjectiveID) {
 	return NewBitsString;
 }
 
-function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
-	local array<string> arr, MainArr, BitArr;
-	local class<Hat_SnatcherContract_DeathWish> DW;
-	local int ObjectiveID, OriginalObjectiveProgress, ObjectiveProgress, i;
+//Returns TRUE if we should continue syncing the objective, returns FALSE otherwise
+function bool ShouldContinueObjectiveSync(const out DeathWishBit DWBit, const out array<string> ExtraArr) {
+	local int i;
 
-	arr = SplitString(SyncString, "|");
+	if(DWBit.Contract.static.IsContractPerfected() || DWBit.Contract.static.IsObjectiveCompleted(DWBit.ObjectiveID)) return false;
+	if(DWBit.ObjectiveProgress == -1) return Super.ShouldContinueObjectiveSync(DWBit, ExtraArr);
 
-	if(arr.length < 2) return;
+	for(i = 0; i < ExtraArr.length; i++) {
+		if(ExtraArr[i] == "") continue;
 
-	MainArr = SplitString(arr[0], "+");
-	BitArr = SplitString(arr[1], "+");
+		if(class'Hat_SaveBitHelper'.static.GetLevelBits(ExtraArr[i], OBJECTIVE_MAP) == 0) {
+			return true; //We've located a new level bit, we are guaranteed to have progress
+		}
+	}
 
-	if(MainArr.length < 2) return;
+	return false;
+}
 
-	DW = class<Hat_SnatcherContract_DeathWish>(class'Hat_ClassHelper'.static.ClassFromName(MainArr[0]));
-	ObjectiveID = int(MainArr[1]);
+//Should handle unlocking objectives
+//Returns TRUE if we should celebrate this sync, returns FALSE otherwise
+function bool HandleObjectiveSync(const out DeathWishBit DWBit, const out array<string> ExtraArr) {
+	local int i;
+	local int NewObjectiveProgress;
 
-    if(DW.static.IsContractPerfected() || DW.static.IsObjectiveCompleted(ObjectiveID)) return;
+	//This is a full clear
+	if(DWBit.ObjectiveProgress == -1) {
+		DWBit.Contract.static.ForceUnlockObjective(DWBit.ObjectiveID);
+	}
+	else {
+		NewObjectiveProgress = DWBit.Contract.static.GetObjectiveProgress(DWBit.ObjectiveID);
 
-	//This is a sync with objective progress
-	if(arr.length >= 3) {
-		ObjectiveProgress = DW.static.GetObjectiveProgress(ObjectiveID);
-		OriginalObjectiveProgress = ObjectiveProgress;
+		for(i = 0; i < ExtraArr.length; i++) {
+			if(ExtraArr[i] == "") continue;
 
-		for(i = 0; i < BitArr.length; i++) {
-			if(BitArr[i] == "") continue;
+			if(class'Hat_SaveBitHelper'.static.GetLevelBits(ExtraArr[i], OBJECTIVE_MAP) == 0) {
+				class'Hat_SaveBitHelper'.static.SetLevelBits(ExtraArr[i], 1, OBJECTIVE_MAP);
 
-			if(class'Hat_SaveBitHelper'.static.GetLevelBits(BitArr[i], OBJECTIVE_MAP) == 0) {
-				class'Hat_SaveBitHelper'.static.SetLevelBits(BitArr[i], 1, OBJECTIVE_MAP);
-
-				ObjectiveProgress += 1;
-				DW.static.SetObjectiveValue(ObjectiveID, ObjectiveProgress);
+				NewObjectiveProgress += 1;				
 			}
 		}
 
-		if(ObjectiveProgress <= OriginalObjectiveProgress) return; //We didn't actually gain any progress from this sync
-	}
-	//This is a finished stamp sync
-	else {
-		DW.static.ForceUnlockObjective(ObjectiveID);
+		DWBit.Contract.static.SetObjectiveValue(DWBit.ObjectiveID, NewObjectiveProgress);
 	}
 
-	FixDeathWishBits();
-
-	CelebrateSync(Sender, GetLocalization(DW), GetHUDIcon(DW));
+	return true;
 }
 
 function FixDeathWishBits() {
@@ -159,8 +147,6 @@ function FixDeathWishBits() {
 
 static function String GetSnappedID(Actor a, optional bool CheckBoss)
 {
-	if (a.bHidden) return "";
-
 	if (CheckBoss)
 	{
 		if (a.IsA('Hat_Boss_Mafia') ||

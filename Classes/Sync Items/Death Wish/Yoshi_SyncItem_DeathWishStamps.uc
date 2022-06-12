@@ -4,15 +4,7 @@ class Yoshi_SyncItem_DeathWishStamps extends Yoshi_SyncItem
 var array< class<Hat_SnatcherContract_DeathWish> > WhitelistedDeathWishes;
 var array< class<Hat_SnatcherContract_DeathWish> > BlacklistedDeathWishes;
 
-//Special Death Wishes?
-
-//TODO:
-//Need Extra Level Bits
-//Kill Everybody
-//A Presses
-//Fix the coins
-
-struct OPSS_DeathWishBit {
+struct DeathWishBit {
 	var class<Hat_SnatcherContract_DeathWish> Contract;
 	var int ObjectiveID;
 	//If -1, this should only sync as an all-or-nothing objective
@@ -24,7 +16,7 @@ struct OPSS_DeathWishBit {
 	}
 };
 
-var array<OPSS_DeathWishBit> DeathWishBits;
+var array<DeathWishBit> DeathWishBits;
 
 function bool IsAllowed(class<Hat_SnatcherContract_DeathWish> DW) {
 	local int i;
@@ -53,79 +45,115 @@ function bool IsBlacklisted(class<Hat_SnatcherContract_DeathWish> DW) {
 	return false;
 }
 
-function Update(float delta) {
-	local int i;
-	local int NewProgress;
-	
+function Update(float delta) {	
+	//TODO: this is a waste of time?
 	if(DeathWishBits.length <= 0) {
 		UpdateActiveDWs();
 	}
+
+	IterateDeathWishes(true);
+}
+
+function IterateDeathWishes(bool ShouldCountCompletion) {
+	local int i, NewProgress;
 
 	for(i = 0; i < DeathWishBits.length; i++) {
 
 		NewProgress = DeathWishBits[i].Contract.static.GetObjectiveProgress(DeathWishBits[i].ObjectiveID);
 
 		if(DeathWishBits[i].Contract.static.IsObjectiveCompleted(DeathWishBits[i].ObjectiveID)) {
-			OnObjectiveCompleted(i);
+			if(ShouldCountCompletion) {
+				OnObjectiveCompleted(DeathWishBits[i], true);
+			}
 
 			DeathWishBits.Remove(i, 1);
 			i--;
 		}
 		else if(DeathWishBits[i].ObjectiveProgress > -1 && NewProgress > DeathWishBits[i].ObjectiveProgress) {
-			OnObjectiveNewProgress(i, NewProgress);
+			DeathWishBits[i].ObjectiveProgress = NewProgress;
+
+			if(ShouldCountCompletion) {
+				OnObjectiveCompleted(DeathWishBits[i]);
+			}
 		}		
 	}
 }
 
-function OnObjectiveCompleted(int i) {
+function OnObjectiveCompleted(DeathWishBit DWBit, optional bool IsFullClear = false) {
 	local string SyncString;
-	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID;
 
-	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
+	if(IsFullClear) {
+		DWBit.ObjectiveProgress = -1; //Make sure this sends as an all in one sync
+	}
+	
+	SyncString = GetObjectiveString(DWBit);
+
+	CelebrateSyncLocal(GetLocalization(DWBit.Contract), GetHUDIcon(DWBit.Contract));
 
 	Sync(SyncString);
 }
 
-function OnObjectiveNewProgress(int i, int NewProgress) {
-	local string SyncString;
-	DeathWishBits[i].ObjectiveProgress = NewProgress;
-
-	SyncString = DeathWishBits[i].Contract $ "+" $ DeathWishBits[i].ObjectiveID $ "+" $ NewProgress;
-
-	CelebrateSyncLocal(GetLocalization(DeathWishBits[i].Contract), GetHUDIcon(DeathWishBits[i].Contract));
-
-	Sync(SyncString);
+function string GetObjectiveString(const DeathWishBit DWBit) {
+	return DWBit.Contract $ "+" $ DWBit.ObjectiveID $ "+" $ DWBit.ObjectiveProgress;
 }
 
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
-	local array<string> arr;
-	local class<Hat_SnatcherContract_DeathWish> DW;
-	local int ObjectiveID, ObjectiveProgress;
+	local array<string> arr, MainArr, ExtraArr;
+	local DeathWishBit DWBit;
+	local bool ShouldCelebrate;
 
-	arr = SplitString(SyncString, "+");
-
-	if(arr.length < 2) return;
-
-	DW = class<Hat_SnatcherContract_DeathWish>(class'Hat_ClassHelper'.static.ClassFromName(arr[0]));
-	ObjectiveID = int(arr[1]);
-
-    if(DW.static.IsContractPerfected() || DW.static.IsObjectiveCompleted(ObjectiveID)) return;
-
-	//This is a sync with objective progress
-	if(arr.length >= 3) {
-		ObjectiveProgress = int(arr[2]);
-		if(DW.static.GetObjectiveProgress(ObjectiveID) >= ObjectiveProgress) return;
-
-		DW.static.SetObjectiveValue(ObjectiveID, ObjectiveProgress);
+	arr = SplitString(SyncString, "|");
+	if(arr.length >= 1) {
+		MainArr = SplitString(arr[0], "+");
 	}
-	//This is a finished stamp sync
+
+	if(arr.length >= 2) {
+		ExtraArr = SplitString(arr[1], "+");
+	}
+
+	if(MainArr.length >= 3) {
+
+		DWBit.Contract = class<Hat_SnatcherContract_DeathWish>(class'Hat_ClassHelper'.static.ClassFromName(MainArr[0]));
+		DWBit.ObjectiveID = int(MainArr[1]);
+		DWBit.ObjectiveProgress = int(MainArr[2]);
+
+		//Check if we should continue with handling the sync
+		if(!ShouldContinueObjectiveSync(DWBit, ExtraArr)) {
+			Print("OPSS_FailContinueObjective " $ `ShowVar(self) @ `ShowVar(DWBit.Contract) @ `ShowVar(DWBit.ObjectiveID) @ `ShowVar(DWBit.ObjectiveProgress));
+			return;
+		}
+
+		ShouldCelebrate = HandleObjectiveSync(DWBit, ExtraArr);
+
+		FixDeathWishBits();
+		
+		if(ShouldCelebrate) {
+			CelebrateSync(Sender, GetLocalization(DWBit.Contract), GetHUDIcon(DWBit.Contract));
+		}	
+	}
+}
+
+//Returns TRUE if we should continue syncing the objective, returns FALSE otherwise
+function bool ShouldContinueObjectiveSync(const out DeathWishBit DWBit, const out array<string> ExtraArr) {
+	if(DWBit.Contract.static.IsContractPerfected() || DWBit.Contract.static.IsObjectiveCompleted(DWBit.ObjectiveID)) return false;
+	if(DWBit.ObjectiveProgress >= 0 && DWBit.Contract.static.GetObjectiveProgress(DWBit.ObjectiveID) >= DwBit.ObjectiveProgress) return false;
+
+	return true;
+}
+
+//Should handle unlocking objectives
+//Returns TRUE if we should celebrate this sync, returns FALSE otherwise
+function bool HandleObjectiveSync(const out DeathWishBit DWBit, const out array<string> ExtraArr) {
+	//This is a full clear
+	if(DWBit.ObjectiveProgress == -1) {
+		DWBit.Contract.static.ForceUnlockObjective(DWBit.ObjectiveID);
+	}
+	//This is a progress update
 	else {
-		DW.static.ForceUnlockObjective(ObjectiveID);
+		DWBit.Contract.static.SetObjectiveValue(DWBit.ObjectiveID, DWBit.ObjectiveProgress);
 	}
 
-	FixDeathWishBits();
-
-	CelebrateSync(Sender, GetLocalization(DW), GetHUDIcon(DW));
+	return true;
 }
 
 static function string GetLocalization(optional Object SyncClass) {
@@ -153,27 +181,14 @@ static function Surface GetHUDIcon(optional Object SyncClass) {
 }
 
 function FixDeathWishBits() {
-	local int i;
-	local int NewProgress;
-
-	for(i = 0; i < DeathWishBits.length; i++) {
-		NewProgress = DeathWishBits[i].Contract.static.GetObjectiveProgress(DeathWishBits[i].ObjectiveID);
-
-		if(DeathWishBits[i].Contract.static.IsObjectiveCompleted(DeathWishBits[i].ObjectiveID)) {
-			DeathWishBits.Remove(i, 1);
-			i--;
-		}
-		else if(DeathWishBits[i].ObjectiveProgress > -1 && NewProgress > DeathWishBits[i].ObjectiveProgress) {
-			DeathWishBits[i].ObjectiveProgress = NewProgress;
-		}		
-	}
+	IterateDeathWishes(false);
 }
 
 function UpdateActiveDWs()
 {
 	local int i, j;
 	local Hat_SnatcherContract_DeathWish DW;
-	local OPSS_DeathWishBit NewDWBit;
+	local DeathWishBit NewDWBit;
 	
 	DeathWishBits.length = 0;
 	for (i = 0; i < `GameManager.DeathWishes.Length; i++)
