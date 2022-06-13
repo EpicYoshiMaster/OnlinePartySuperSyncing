@@ -5,11 +5,15 @@ class Yoshi_SyncItem_Backpack extends Yoshi_SyncItem
 var const array< class<Object> > WhitelistedCollectibles; //Use most general class of a collectible that can be handled here
 var const array< class<Object> > BlacklistedCollectibles; //Use for subclasses of a Whitelisted Collectible that should not go through
 
-var bool UseItemQualityInfo;
+var bool UseItemQualityInfo; //Specified by Subclasses
+
+var bool IgnoringReceivedItem; //State variable, ignore calls to OnNewBackpackItem that result from received syncs
 
 function OnNewBackpackItem(Hat_BackpackItem item) {
 	local class<Object> CheckClass;
 	local int i;
+
+	if(IgnoringReceivedItem) return;
 
 	if(!UseItemQualityInfo) {
 		CheckClass = item.BackpackClass;
@@ -55,6 +59,7 @@ function OnValidCollectible(class<Object> CheckClass) {
 
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	local array<string> arr;
+	local bool AddedItemToBackpack;
 	local Hat_Player ply;
 	local class<Object> ItemBackpackClass;
 	local class<Hat_CosmeticItemQualityInfo> ItemQualityInfo;
@@ -70,7 +75,12 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 		ItemBackpackClass = ItemQualityInfo.default.CosmeticItemWeApplyTo;
 	}
 
-	if(!Hat_PlayerController(ply.Controller).GetLoadout().AddBackpack(class'Hat_Loadout'.static.MakeLoadoutItem(ItemBackpackClass, ItemQualityInfo), false)) return;
+	//Wrap up ignoring this item so we don't send it back to who we just got it from
+	IgnoringReceivedItem = true;
+	AddedItemToBackpack = Hat_PlayerController(ply.Controller).GetLoadout().AddBackpack(class'Hat_Loadout'.static.MakeLoadoutItem(ItemBackpackClass, ItemQualityInfo), false);
+	IgnoringReceivedItem = false;
+
+	if(!AddedItemToBackpack) return;
 
 	if(!UseItemQualityInfo) {
 		CelebrateSync(Sender, GetLocalization(ItemBackpackClass), GetHUDIcon(ItemBackpackClass));
