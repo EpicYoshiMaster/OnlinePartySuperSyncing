@@ -5,8 +5,8 @@ class Yoshi_SyncItem extends Object
 
 const HAT_PACKAGE_NAME = "hatintimegamecontent";
 const OPSS_LOCALIZATION_FILENAME = "opss";
-const DEBUG_CELEBRATEHUD_LOCAL = true;
-const DEBUG_SPAWNPARTICLE_LOCAL = true;
+const DEBUG_CELEBRATEHUD_LOCAL = false;
+const DEBUG_SPAWNPARTICLE_LOCAL = false;
 
 var Yoshi_OnlinePartySuperSync_GameMod GameMod;
 var const MaterialInterface SyncMaterial;
@@ -30,6 +30,8 @@ function OnAdded() {
 function Update(float delta) {}
 
 function Sync(string SyncString) {
+	if(!ShouldBeEnabled()) return;
+
 	if(GameMod != None) {
 		GameMod.SendSync(self, SyncString, GetCommandChannel());
 	}
@@ -53,6 +55,8 @@ function bool IsInSameWorld(string MapName) {
 function CelebrateSyncLocal(string LocalizedItemName, Surface Icon) {
 	local Hat_Player ply;
 
+	if(!ShouldBeEnabled()) return;
+
 	Print("OPSS_LOCALIZE => " @ self.class @ "(Name: " $ LocalizedItemName $ ", Icon: " $ Icon $ ")");
 
 	if(DEBUG_CELEBRATEHUD_LOCAL && GameMod != None) {
@@ -71,7 +75,7 @@ function CelebrateSync(Hat_GhostPartyPlayerStateBase Sender, string LocalizedIte
 		GameMod.OnCelebrateSync(Sender, LocalizedItemName, Icon);
 	}
 
-	if(Texture(Icon) != None) {
+	if(Texture(Icon) != None && GameMod.default.ShowSyncIcons == 0) {
 		SpawnParticle(Texture(Icon));
 	}
 }
@@ -108,6 +112,11 @@ static function Surface GetHUDIcon(optional Object SyncClass) {
 	Print("OPSS_ERR_HUDICON => GetHUDIcon: Failed to grab Icon! " @ `ShowVar(SyncClass));
 
 	return Texture2D'HatInTime_Hud_Loadout.Item_Icons.itemicon_unknown';
+}
+
+//This function should be overridden by child classes to determine when this sync type should be activated for use
+static function bool ShouldBeEnabled() {
+	return true;
 }
 
 //Makes the cool icon that shows up when you get a sync

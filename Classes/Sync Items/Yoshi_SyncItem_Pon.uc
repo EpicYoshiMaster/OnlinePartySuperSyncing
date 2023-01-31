@@ -14,3 +14,7 @@ static function Surface GetHUDIcon(optional Object SyncClass) {
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
 	`GameManager.AddEnergyBits(1);
 }
+
+static function bool ShouldBeEnabled() {
+	return class'Yoshi_OnlinePartySuperSync_GameMod'.default.SyncPons == 0;
+}

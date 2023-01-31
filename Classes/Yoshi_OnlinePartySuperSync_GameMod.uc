@@ -3,7 +3,7 @@
 */
 class Yoshi_OnlinePartySuperSync_GameMod extends GameMod;
 
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 
 //0 is Enabled, 1 is Disabled
 var config int ShowSyncIcons;
@@ -18,11 +18,15 @@ var config int SelectedOPSSTeam;
 
 var bool HasControllerSpawned;
 
-var Yoshi_HUDElement_OnlineSync SyncHUD;
+// Not production ready yet!
+//var Yoshi_HUDElement_OnlineSync SyncHUD;
 
+var array< class<Yoshi_SyncItem> > AllSyncClasses;
 var array<Yoshi_SyncItem> Syncs;
 
 function SendSync(Yoshi_SyncItem SyncItem, string SyncString, Name CommandChannel) {
+	if(!SyncItem.ShouldBeEnabled()) return;
+	
 	CommandChannel = Name(GetTeamCode() $ "+" $ CommandChannel $ "+" $ SyncItem.class);
 
 	Print("OPSS_SEND => " @ `ShowVar(SyncString) @ `ShowVar(CommandChannel));
@@ -39,7 +43,7 @@ event OnOnlinePartyCommand(string Command, Name CommandChannel, Hat_GhostPartyPl
 	if(Name(CommandInfo[1]) != class'Yoshi_SyncItem'.static.GetCommandChannel()) return;
 
 	for(i = 0; i < Syncs.length; i++) {
-		if(CommandInfo[2] ~= string(Syncs[i].class)) {
+		if(CommandInfo[2] ~= string(Syncs[i].class) && Syncs[i].ShouldBeEnabled()) {
 			Print("OPSS_RECEIVE => " @ `ShowVar(Command) @ `ShowVar(CommandChannel));
 			Syncs[i].OnReceiveSync(Command, Sender);
 		}
@@ -58,7 +62,6 @@ function OnNewBackpackItem(Hat_BackpackItem item) {
 
 event OnModLoaded() {
 	local int i;
-	local array< class<Yoshi_SyncItem> > AllSyncClasses;
 
 	if(`GameManager.GetCurrentMapFilename() ~= `GameManager.TitlescreenMapName) return;
 
@@ -66,8 +69,6 @@ event OnModLoaded() {
 	AllSyncClasses = GetAllSyncClasses();
 
 	for(i = 0; i < AllSyncClasses.length; i++) {
-
-		//TODO: Add Config Checks
 		Syncs.AddItem(new AllSyncClasses[i]);
 		Syncs[Syncs.length - 1].OnAdded();
 	}
@@ -98,7 +99,7 @@ function OnReady(Object obj) {
 	if(pc != None) {
 
 		Print("OPSS_ONREADY " $ `ShowVar(pc));
-		SyncHUD = Yoshi_HUDElement_OnlineSync(Hat_HUD(pc.myHUD).OpenHUD(class'Yoshi_HUDElement_OnlineSync'));
+		//SyncHUD = Yoshi_HUDElement_OnlineSync(Hat_HUD(pc.myHUD).OpenHUD(class'Yoshi_HUDElement_OnlineSync'));
 
 		NewLoadout = new class'Yoshi_Loadout';
 		NewLoadout.GameMod = self;
@@ -111,14 +112,15 @@ function OnReady(Object obj) {
 }
 
 function OnCelebrateSync(Hat_GhostPartyPlayerStateBase state, string LocalizedItemName, Surface Icon) {
-	SyncHUD.PushSync(state, LocalizedItemName, Icon);
+	//SyncHUD.PushSync(state, LocalizedItemName, Icon);
 }
 
 //Call it once then never again...
-static function array< class<Yoshi_SyncItem> > GetAllSyncClasses() {
-	local array< class<Yoshi_SyncItem> > AllSyncClasses;
+function array< class<Yoshi_SyncItem> > GetAllSyncClasses() {
 	local array< class<Object> > AllClasses;
     local int i;
+
+	if(AllSyncClasses.length > 0) return AllSyncClasses;
 
     AllClasses = class'Hat_ClassHelper'.static.GetAllScriptClasses("Yoshi_SyncItem");
     for(i = 0; i < AllClasses.length; i++) {
@@ -128,10 +130,6 @@ static function array< class<Yoshi_SyncItem> > GetAllSyncClasses() {
     }
 
     return AllSyncClasses;
-}
-
-event OnConfigChanged(Name ConfigName) {
-	//TODO: Figure Out Configs / HUD?
 }
 
 function string GetTeamCode() {

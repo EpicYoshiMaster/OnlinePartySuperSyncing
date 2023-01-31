@@ -214,3 +214,7 @@ function UpdateActiveDWs()
 		}
 	}
 }
+
+static function bool ShouldBeEnabled() {
+	return class'Yoshi_OnlinePartySuperSync_GameMod'.default.SyncDeathWishStamps == 0;
+}

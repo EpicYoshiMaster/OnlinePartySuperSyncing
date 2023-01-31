@@ -30,18 +30,7 @@ struct OPSSTeam {
     var LinearColor TeamColor;
 };
 
-const OPSSTimePiece = 'QhPMLCBAQNhrexMSZfCEgeuFE';
-const OPSSDeathWish = 'KcnGmbQjpBHXXCLeuQdvpPwrB';
-const OPSSPon = 'JGbXuhmZxaRUHenErbZXdDPPh';
-const OPSSGeneral = 'MbCSvHceqUjBagxmGpjvvkFwW';
-const OPSSRelic = 'sywhMVcYEuMMDQdtwkwJCREWz';
-const OPSSSticker = 'BrSKfYVHRwWZXWCvbqgyAxEhQ';
-const OPSSBackpack = 'dHBbxXQxpQUNAvmUxwYDtHJxW';
-const OPSSChest = 'heunEzPrDeANVThmafJYWHcDt';
-const OPSSProgression = 'MCExvRTMUrPJLvMHgfZEcxpte';
-const OPSSAlpineIntro = 'knGPARngRcZgnVLudznYFkcRe';
-
-const OPSSItem = 'testing';
+const OPSSItem = 'eUCAogBeFzoPvsVsPiSD';
 
 var const array<OPSSTeam> Teams;
 

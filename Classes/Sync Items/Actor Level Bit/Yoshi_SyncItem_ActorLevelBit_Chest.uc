@@ -6,6 +6,10 @@ function SyncActor(Actor a) {
 	}
 }
 
+static function bool ShouldBeEnabled() {
+	return class'Yoshi_OnlinePartySuperSync_GameMod'.default.SyncGeneralCollectibles == 0;
+}
+
 defaultproperties
 {
 	ActorClasses.Add(class'Hat_TreasureChest_Base');

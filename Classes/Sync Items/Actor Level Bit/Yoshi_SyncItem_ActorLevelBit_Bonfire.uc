@@ -18,6 +18,10 @@ static function Surface GetHUDIcon(optional Object SyncClass) {
 	return Super.GetHUDIcon(SyncClass);
 }
 
+static function bool ShouldBeEnabled() {
+	return class'Yoshi_OnlinePartySuperSync_GameMod'.default.SyncLevelEvents == 0;
+}
+
 defaultproperties
 {
 	ActorClasses.Add(class'Hat_Bonfire_Base');

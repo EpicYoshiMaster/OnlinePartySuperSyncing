@@ -20,6 +20,10 @@ static function Surface GetHUDIcon(optional Object SyncClass) {
 	return Texture2D'HatInTime_Hud_LocationBanner.Textures.vikinghorn';
 }
 
+static function bool ShouldBeEnabled() {
+	return class'Yoshi_OnlinePartySuperSync_GameMod'.default.SyncLevelEvents == 0;
+}
+
 defaultproperties
 {
 	ActorClasses.Add(class'Hat_SandStationHorn_Base');

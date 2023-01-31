@@ -80,6 +80,10 @@ simulated function class<Hat_Collectible_Decoration> GetNextRelic(class<Hat_Coll
 	return DecorationPriorities[i];
 }
 
+static function bool ShouldBeEnabled() {
+	return class'Yoshi_OnlinePartySuperSync_GameMod'.default.SyncGeneralCollectibles == 0;
+}
+
 defaultproperties
 {
 	WhitelistedCollectibles.Add(class'Hat_Collectible_Decoration');

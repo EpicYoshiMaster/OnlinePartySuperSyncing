@@ -44,3 +44,7 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 
 	CelebrateSync(Sender, GetLocalization(), GetHUDIcon());
 }
+
+static function bool ShouldBeEnabled() {
+	return class'Yoshi_OnlinePartySuperSync_GameMod'.default.SyncLevelEvents == 0;
+}

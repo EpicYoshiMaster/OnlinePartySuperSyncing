@@ -98,6 +98,10 @@ function UpdatePowerPanels() {
 
 }
 
+static function bool ShouldBeEnabled() {
+	return class'Yoshi_OnlinePartySuperSync_GameMod'.default.SyncTimePieces == 0;
+}
+
 defaultproperties
 {
 	ParticleScale=0.5

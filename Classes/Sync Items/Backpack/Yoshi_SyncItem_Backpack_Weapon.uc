@@ -24,6 +24,10 @@ static function Surface GetHUDIcon(optional Object SyncClass) {
 	return Super.GetHUDIcon(SyncClass);
 }
 
+static function bool ShouldBeEnabled() {
+	return class'Yoshi_OnlinePartySuperSync_GameMod'.default.SyncGeneralCollectibles == 0;
+}
+
 defaultproperties
 {
 	WhitelistedCollectibles.Add(class'Hat_Weapon');
