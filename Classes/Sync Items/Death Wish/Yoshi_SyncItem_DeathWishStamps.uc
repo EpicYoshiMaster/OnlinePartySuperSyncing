@@ -6,6 +6,7 @@ var array< class<Hat_SnatcherContract_DeathWish> > BlacklistedDeathWishes;
 
 struct DeathWishBit {
 	var class<Hat_SnatcherContract_DeathWish> Contract;
+	var string PackageName;
 	var int ObjectiveID;
 	//If -1, this should only sync as an all-or-nothing objective
 	//If > -1, this should sync any time it increases and then update
@@ -94,7 +95,7 @@ function OnObjectiveCompleted(DeathWishBit DWBit, optional bool IsFullClear = fa
 }
 
 function string GetObjectiveString(const DeathWishBit DWBit) {
-	return DWBit.Contract $ "+" $ DWBit.ObjectiveID $ "+" $ DWBit.ObjectiveProgress;
+	return DWBit.Contract $ "+" $ DWBit.ObjectiveID $ "+" $ DWBit.ObjectiveProgress $ "+" $ DWBit.PackageName;
 }
 
 function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) {
@@ -113,7 +114,13 @@ function OnReceiveSync(string SyncString, Hat_GhostPartyPlayerStateBase Sender) 
 
 	if(MainArr.length >= 3) {
 
-		DWBit.Contract = class<Hat_SnatcherContract_DeathWish>(class'Hat_ClassHelper'.static.ClassFromName(MainArr[0]));
+		DWBit.Contract = class<Hat_SnatcherContract_DeathWish>(class'Hat_ClassHelper'.static.ClassFromName(MainArr[0], (MainArr.length >= 4 ? MainArr[3] : "")));
+
+		if(DWBit.Contract == None) {
+			//No Contract was found, perhaps a Mod DW we don't have?
+			return;
+		}
+
 		DWBit.ObjectiveID = int(MainArr[1]);
 		DWBit.ObjectiveProgress = int(MainArr[2]);
 
@@ -198,6 +205,7 @@ function UpdateActiveDWs()
 		for(j = 0; j < DW.default.Objectives.length; j++) {
 			if(!DW.static.IsObjectiveCompleted(j) && IsAllowed(DW.class)) {
 				NewDWBit.Contract = DW.class;
+				NewDWBit.PackageName = string(DW.class.GetPackageName());
 				NewDWBit.ObjectiveID = j;
 
 				if(DW.default.Objectives[j].MaxTriggerCount > 1 && !DW.default.Objectives[j].ResetProgressOnLevelEntry) {
@@ -209,7 +217,7 @@ function UpdateActiveDWs()
 
 				DeathWishBits.AddItem(NewDWBit);
 
-				Print("OPSS_NEWDEATHWISHBIT =>" @ `ShowVar(self) @ `ShowVar(NewDWBit.Contract) @ `ShowVar(NewDWBit.ObjectiveID) @ `ShowVar(NewDWBit.ObjectiveProgress));
+				Print("OPSS_NEWDEATHWISHBIT =>" @ `ShowVar(self) @ `ShowVar(NewDWBit.Contract) @ `ShowVar(NewDWBit.ObjectiveID) @ `ShowVar(NewDWBit.ObjectiveProgress) @ `ShowVar(NewDWBit.PackageName));
 			}
 		}
 	}
